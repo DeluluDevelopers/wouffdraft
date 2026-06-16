@@ -9,9 +9,9 @@ export function apiHandler(
     try {
       return await handler(req);
     } catch (error) {
-      if (error instanceof AppError) {
-        console.error("Unexpected error:", error);
+      console.error("Unexpected error:", error);
 
+      if (error instanceof AppError) {
         return NextResponse.json(
           {
             success: false,

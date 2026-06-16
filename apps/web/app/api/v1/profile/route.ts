@@ -3,6 +3,7 @@ import { apiHandler } from "../../../lib/api-handler";
 import { prisma } from "../../../lib/prisma";
 import { ForbiddenError } from "../../../lib/error-handler";
 import { BadRequestError } from "../../../lib/error-handler";
+import { NotFoundError } from "../../../lib/error-handler";
 import { Client } from "@googlemaps/google-maps-services-js";
 import { env } from "../../../lib/env";
 import z from "zod";
@@ -23,9 +24,58 @@ const profileSchema = z.object({
         vaccinationStatus: z.enum(["UpToDate", "Partial", "None"]),
         medicalConditions: z.boolean(),
         medicalHistory: z.string().optional(),
-      })
+      }),
     )
     .min(1, "At least one pet is required"),
+});
+
+export const GET = apiHandler(async (req: NextRequest) => {
+  const userId = req.headers.get("x-user-id")!;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      phoneNumber: true,
+      email: true,
+      name: true,
+      profileStatus: true,
+      location: {
+        select: {
+          id: true,
+          label: true,
+          placeId: true,
+          address: true,
+          latitude: true,
+          longitude: true,
+        },
+      },
+      pets: {
+        select: {
+          id: true,
+          name: true,
+          species: true,
+          breed: true,
+          ageMonths: true,
+          gender: true,
+          vaccinationStatus: true,
+          medicalConditions: true,
+          medicalHistory: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+
+  return NextResponse.json({
+    status: 200,
+    success: true,
+    data: user,
+  });
 });
 
 export const POST = apiHandler(async (req: NextRequest) => {
@@ -40,8 +90,13 @@ export const POST = apiHandler(async (req: NextRequest) => {
     throw new ForbiddenError("User not found");
   }
 
-  if (user.profileStatus !== "VERIFIED" && user.profileStatus !== "PROFILE_COMPLETED") {
-    throw new ForbiddenError("Profile can only be completed after phone verification");
+  if (
+    user.profileStatus !== "VERIFIED" &&
+    user.profileStatus !== "PROFILE_COMPLETED"
+  ) {
+    throw new ForbiddenError(
+      "Profile can only be completed after phone verification",
+    );
   }
 
   // Already completed — idempotent success
@@ -97,7 +152,7 @@ export const POST = apiHandler(async (req: NextRequest) => {
           userId,
           ...pet,
         },
-      })
+      }),
     ),
   ]);
 
