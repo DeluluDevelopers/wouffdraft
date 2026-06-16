@@ -3,7 +3,7 @@ import { apiHandler } from "../../../../lib/api-handler";
 import z from "zod";
 import { prisma } from "../../../../lib/prisma";
 import { UnauthorizedError } from "../../../../lib/error-handler";
-import { generateAccessToken } from "../../../../lib/jwt";
+import { generateAccessToken, generateRefreshToken } from "../../../../lib/jwt";
 
 const verifyOTPSchema = z.object({
   phoneNumber: z.string(),
@@ -44,9 +44,18 @@ export const POST = apiHandler(async (req: NextRequest) => {
       },
     }),
   ]);
-  const accessToken = generateAccessToken({
+  const accessToken = await generateAccessToken({
     userId: validOtp.userId,
     phoneNumber,
   });
-  return NextResponse.json({ message: "OTP verified successfully" });
+  const refreshToken = await generateRefreshToken({
+    userId: validOtp.userId,
+    phoneNumber,
+  });
+  return NextResponse.json({
+    status: 200,
+    success: true,
+    message: "OTP verified successfully",
+    data: { accessToken, refreshToken },
+  });
 });

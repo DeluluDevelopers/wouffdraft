@@ -16,8 +16,9 @@
     "@prisma/client": "^7.8.0",
     "@repo/ui": "workspace:*",
     "axios": "^1.18.0",
-    "jsonwebtoken": "^9.0.3",
+    "jose": "^6.2.3",
     "next": "16.2.0",
+    "node-cache": "^5.1.2",
     "pg": "^8.21.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -26,7 +27,6 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.15.3",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",

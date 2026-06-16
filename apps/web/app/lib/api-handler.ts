@@ -10,6 +10,8 @@ export function apiHandler(
       return await handler(req);
     } catch (error) {
       if (error instanceof AppError) {
+        console.error("Unexpected error:", error);
+
         return NextResponse.json(
           {
             success: false,
@@ -34,7 +36,6 @@ export function apiHandler(
           { status: 422 },
         );
       }
-      console.error("Unexpected error:", error);
 
       return NextResponse.json(
         {

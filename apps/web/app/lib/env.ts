@@ -21,9 +21,9 @@ const envSchema = z.object({
   MESSAGECENTRAL_CUSTOMER_ID: z
     .string()
     .min(1, "MESSAGECENTRAL_CUSTOMER_ID is required"),
-  MESSAGECENTRAL_AUTH_TOKEN: z
+  MESSAGECENTRAL_BASE64_KEY: z
     .string()
-    .min(1, "MESSAGECENTRAL_AUTH_TOKEN is required"),
+    .min(1, "MESSAGECENTRAL_BASE64_KEY is required (base64-encoded password from MessageCentral)"),
 });
 
 export const env = envSchema.parse(process.env);

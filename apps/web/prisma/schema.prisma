@@ -19,15 +19,29 @@ enum ProfileStatus {
   SUSPENDED
 }
 
+enum Species {
+  Dog
+  Cat
+}
+
+enum Gender {
+  Male
+  Female
+}
+
 model User{
   id String @id @default(uuid())
 
   phoneNumber String
   email String? @unique
+  name String?
+  location Location[]
 
   profileStatus ProfileStatus @default(REGISTERED)
 
   otps Otp[]
+  pets Pet[]
+  bookings Booking[]
 
   @@unique([phoneNumber])
   @@index([phoneNumber])
@@ -47,6 +61,9 @@ model Otp{
 
 model Location {
   id String @id @default(uuid())
+
+  userId String
+  user User @relation(fields: [userId], references: [id])
   
   label String 
 
@@ -56,4 +73,57 @@ model Location {
   longitude Float
 
   @@index([placeId])
+}
+
+enum VaccinationStatus {
+  UpToDate
+  Partial
+  None
+}
+
+model Pet {
+  id String @id @default(uuid())
+
+  userId String
+  user User @relation(fields: [userId], references: [id])
+
+  name String
+  species Species
+  breed String?
+  ageMonths Int
+  gender Gender
+  vaccinationStatus VaccinationStatus
+  medicalConditions Boolean
+  medicalHistory String?
+
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum BookingType {
+  Instant
+  Scheduled
+}
+
+model Booking {
+  id String @id @default(uuid())
+
+  userId String
+  user User @relation(fields: [userId], references: [id])
+
+  petId String
+  pet Pet @relation(fields: [petId], references: [id])
+
+  type BookingType
+  scheduledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([petId])
 }

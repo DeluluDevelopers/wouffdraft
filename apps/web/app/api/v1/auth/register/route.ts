@@ -4,11 +4,11 @@ import { apiHandler } from "../../../../lib/api-handler";
 import { prisma } from "../../../../lib/prisma";
 import { BadRequestError } from "../../../../lib/error-handler";
 import { OTP_EXPIRATION_TIME } from "../../../../constant/otp";
+import { generateOtp } from "../../../../lib/otp";
+import { sendSMS } from "../../../../lib/sms";
 
 export const POST = apiHandler(async (req: NextRequest) => {
-  const { phoneNumber } = await registerSchema.parseAsync(
-    await req.json(),
-  );
+  const { phoneNumber } = await registerSchema.parseAsync(await req.json());
 
   const existingUser = await prisma.user.findUnique({
     where: { phoneNumber },
@@ -18,20 +18,22 @@ export const POST = apiHandler(async (req: NextRequest) => {
     throw new BadRequestError("User with this phone number already exists");
   }
 
+  // const otpCode = generateOtp();
+  const otpCode = "123456";
+
+  await sendSMS({ mobileNumber: phoneNumber, otp: otpCode });
   await prisma.user.create({
     data: {
       phoneNumber,
       otps: {
         create: {
-          code: "123456",
+          code: otpCode,
           expiresAt: OTP_EXPIRATION_TIME,
         },
       },
     },
   });
-
-  // Fix this later to send actual OTP instead of hardcoded value
-  // await sendSMS({ mobileNumber: phoneNumber });
+  
   return NextResponse.json({
     status: 201,
     success: true,

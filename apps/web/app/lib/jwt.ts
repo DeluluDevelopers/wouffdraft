@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify } from "jose";
 import { env } from "./env";
 
 export interface JwtPayload {
@@ -6,29 +6,29 @@ export interface JwtPayload {
   phoneNumber: string;
 }
 
-const ACCESS_SECRET = env.JWT_ACCESS_SECRET;
-const REFRESH_SECRET = env.JWT_REFRESH_SECRET;
+const accessSecret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
+const refreshSecret = new TextEncoder().encode(env.JWT_REFRESH_SECRET);
 
-export function generateAccessToken(payload: JwtPayload) {
-  return jwt.sign(payload, ACCESS_SECRET, {
-    expiresIn: "15m",
-  });
+export async function generateAccessToken(payload: JwtPayload) {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("15m")
+    .sign(accessSecret);
 }
 
-export function generateRefreshToken(payload: JwtPayload) {
-  return jwt.sign(payload, REFRESH_SECRET, {
-    expiresIn: "7d",
-  });
+export async function generateRefreshToken(payload: JwtPayload) {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("7d")
+    .sign(refreshSecret);
 }
 
-export function verifyAccessToken(token: string): JwtPayload {
-  return jwt.verify(token, ACCESS_SECRET) as JwtPayload;
+export async function verifyAccessToken(token: string): Promise<JwtPayload> {
+  const { payload } = await jwtVerify(token, accessSecret);
+  return payload as unknown as JwtPayload;
 }
 
-export function verifyRefreshToken(token: string): JwtPayload {
-  return jwt.verify(token, REFRESH_SECRET) as JwtPayload;
-}
-
-export function decodeToken(token: string) {
-  return jwt.decode(token);
+export async function verifyRefreshToken(token: string): Promise<JwtPayload> {
+  const { payload } = await jwtVerify(token, refreshSecret);
+  return payload as unknown as JwtPayload;
 }
