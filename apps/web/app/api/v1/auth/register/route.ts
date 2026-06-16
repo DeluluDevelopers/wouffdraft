@@ -21,7 +21,7 @@ export const POST = apiHandler(async (req: NextRequest) => {
   // const otpCode = generateOtp();
   const otpCode = "123456";
 
-  await sendSMS({ mobileNumber: phoneNumber, otp: otpCode });
+  // await sendSMS({ mobileNumber: phoneNumber, otp: otpCode });
   await prisma.user.create({
     data: {
       phoneNumber,
@@ -33,7 +33,7 @@ export const POST = apiHandler(async (req: NextRequest) => {
       },
     },
   });
-  
+
   return NextResponse.json({
     status: 201,
     success: true,
