@@ -8,3 +8,10 @@
 # api-handler
 - Keep apiHandler wrapper signature minimal — don't force every route handler to declare an unused context parameter; only add params to handlers that actually need them. Confidence: 0.75
 
+# ui
+- Use bottom tabs for app navigation instead of top tabs. Confidence: 0.85
+- Use white and shades of black as the primary color scheme; use other colors sparingly. Confidence: 0.80
+
+# frontend
+- Display phone country code as "91" without the "+" prefix in the frontend. Confidence: 0.65
+

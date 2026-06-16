@@ -5,7 +5,16 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
+      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"],
+      "env": [
+        "DATABASE_URL",
+        "DIRECT_URL",
+        "JWT_ACCESS_SECRET",
+        "JWT_REFRESH_SECRET",
+        "GOOGLE_MAPS_API_KEY",
+        "MESSAGECENTRAL_CUSTOMER_ID",
+        "MESSAGECENTRAL_BASE64_KEY"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]
