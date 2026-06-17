@@ -6,7 +6,8 @@ import z from "zod";
 
 const createBookingSchema = z
   .object({
-    petId: z.string().uuid(),
+    petId: z.uuid(),
+    service: z.enum(["Bathing", "Cutting", "Hygiene"]),
     type: z.enum(["Instant", "Scheduled"]),
     scheduledAt: z.date().optional(),
   })
@@ -39,6 +40,7 @@ export const POST = apiHandler(async (req: NextRequest) => {
     data: {
       userId,
       petId: body.petId,
+      service: body.service,
       type: body.type,
       scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null,
     },

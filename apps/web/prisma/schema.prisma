@@ -104,6 +104,12 @@ model Pet {
   @@index([userId])
 }
 
+enum Service {
+  Bathing
+  Cutting
+  Hygiene
+}
+
 enum BookingType {
   Instant
   Scheduled
@@ -119,6 +125,7 @@ model Booking {
   pet Pet @relation(fields: [petId], references: [id])
 
   type BookingType
+  service Service
   scheduledAt DateTime?
 
   createdAt DateTime @default(now())
