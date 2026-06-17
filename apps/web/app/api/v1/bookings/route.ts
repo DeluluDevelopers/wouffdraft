@@ -8,7 +8,7 @@ const createBookingSchema = z
   .object({
     petId: z.string().uuid(),
     type: z.enum(["Instant", "Scheduled"]),
-    scheduledAt: z.string().datetime().optional(),
+    scheduledAt: z.date().optional(),
   })
   .refine(
     (data) => {
@@ -17,7 +17,10 @@ const createBookingSchema = z
       }
       return true;
     },
-    { message: "scheduledAt is required for Scheduled bookings", path: ["scheduledAt"] }
+    {
+      message: "scheduledAt is required for Scheduled bookings",
+      path: ["scheduledAt"],
+    },
   );
 
 export const POST = apiHandler(async (req: NextRequest) => {
