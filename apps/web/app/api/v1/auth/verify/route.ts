@@ -25,6 +25,9 @@ export const POST = apiHandler(async (req: NextRequest) => {
         gt: new Date(),
       },
     },
+    include: {
+      user: true,
+    },
   });
   if (!validOtp) {
     throw new UnauthorizedError("Invalid OTP");
@@ -40,7 +43,10 @@ export const POST = apiHandler(async (req: NextRequest) => {
     prisma.user.update({
       where: { phoneNumber },
       data: {
-        profileStatus: "VERIFIED",
+        profileStatus:
+          validOtp.user.profileStatus === "REGISTERED"
+            ? "VERIFIED"
+            : validOtp.user.profileStatus,
       },
     }),
   ]);

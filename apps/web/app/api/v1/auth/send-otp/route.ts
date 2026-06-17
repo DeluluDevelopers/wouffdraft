@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiHandler } from "../../../../lib/api-handler";
 import { prisma } from "../../../../lib/prisma";
-import { NotFoundError } from "../../../../lib/error-handler";
+import { NotFoundError, BadRequestError } from "../../../../lib/error-handler";
 import { OTP_EXPIRATION_TIME } from "../../../../constant/otp";
 import { generateOtp } from "../../../../lib/otp";
 import { sendSMS } from "../../../../lib/sms";
+import z from "zod";
+
+const sendOtpSchema = z.object({
+  phoneNumber: z.string().min(1, "Phone number is required"),
+});
 
 export const POST = apiHandler(async (req: NextRequest) => {
-  const { phoneNumber } = await req.json();
+  const { phoneNumber } = await sendOtpSchema.parseAsync(await req.json());
+
+  console.log("Received send OTP request for phone number:", phoneNumber);
 
   let user = await prisma.user.findUnique({
     where: { phoneNumber },
