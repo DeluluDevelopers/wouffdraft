@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Text,
   View,
@@ -8,10 +8,11 @@ import {
   Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/auth/useAuth";
 import { Screen } from "@/ui/Screen";
 import { Ionicons } from "@expo/vector-icons";
-import { getBookings, type Booking } from "@/lib/api";
+import { getBookings } from "@/lib/api";
 
 const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Bathing: "water",
@@ -22,22 +23,23 @@ const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 export default function BookingsScreen() {
   const { accessToken } = useAuth();
   const router = useRouter();
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!accessToken) return;
-    getBookings(accessToken)
-      .then(setBookings)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [accessToken]);
+  const {
+    data: bookings = [],
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useQuery({
+    queryKey: ["bookings"],
+    queryFn: () => getBookings(accessToken!),
+    enabled: !!accessToken,
+  });
 
   return (
     <Screen>
       <Text style={styles.title}>Bookings</Text>
 
-      {loading ? (
+      {isLoading ? (
         <ActivityIndicator color="#FFFFFF" style={{ marginTop: 40 }} />
       ) : bookings.length === 0 ? (
         <Text style={styles.empty}>No bookings yet.</Text>
@@ -46,6 +48,8 @@ export default function BookingsScreen() {
           data={bookings}
           keyExtractor={(b) => b.id}
           contentContainerStyle={{ paddingBottom: 24 }}
+          refreshing={isRefetching}
+          onRefresh={refetch}
           renderItem={({ item }) => (
             <Pressable
               style={styles.card}
@@ -60,10 +64,10 @@ export default function BookingsScreen() {
                   />
                 </View>
                 <View style={styles.cardInfo}>
-                  <Text style={styles.serviceName}>{item.service}</Text>
-                  <Text style={styles.petName}>{item.pet?.name}</Text>
-                  <Text style={styles.date}>
-                    {new Date(item.createdAt).toLocaleDateString()}
+                  <Text style={styles.serviceName} numberOfLines={1}>{item.service}</Text>
+                  <Text style={styles.petName} numberOfLines={1}>{item.pet?.name}</Text>
+                  <Text style={styles.date} numberOfLines={1}>
+                    {item.location?.label}
                   </Text>
                 </View>
               </View>
@@ -124,6 +128,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
+    flex: 1,
+    minWidth: 0,
   },
   iconWrap: {
     width: 44,
@@ -135,6 +141,8 @@ const styles = StyleSheet.create({
   },
   cardInfo: {
     gap: 2,
+    flex: 1,
+    minWidth: 0,
   },
   serviceName: {
     color: "#FFFFFF",

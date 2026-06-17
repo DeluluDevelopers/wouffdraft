@@ -50,7 +50,7 @@ export type Profile = {
   email: string | null;
   name: string | null;
   profileStatus: string;
-  location: LocationProfile | null;
+  location: LocationProfile[];
   pets: PetProfile[];
 };
 
@@ -122,6 +122,8 @@ export type Booking = {
   userId: string;
   petId: string;
   pet: PetProfile;
+  locationId: string;
+  location: LocationProfile;
   service: "Bathing" | "Cutting" | "Hygiene";
   type: "Instant" | "Scheduled";
   scheduledAt: string | null;
@@ -131,6 +133,7 @@ export type Booking = {
 
 export type CreateBookingPayload = {
   petId: string;
+  locationId: string;
   service: "Bathing" | "Cutting" | "Hygiene";
   type: "Instant" | "Scheduled";
   scheduledAt?: string;
@@ -168,4 +171,104 @@ export async function searchAddress(input: string) {
     params: { input },
   });
   return res.data.predictions as AddressPrediction[];
+}
+
+export async function getLocations(accessToken: string) {
+  const res = await api.get("/locations", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data as LocationProfile[];
+}
+
+export type CreateLocationPayload = {
+  label: string;
+  placeId: string;
+};
+
+export async function createLocation(
+  accessToken: string,
+  payload: CreateLocationPayload,
+) {
+  const res = await api.post("/locations", payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data as LocationProfile;
+}
+
+export type UpdateLocationPayload = {
+  label?: string;
+  placeId?: string;
+};
+
+export async function updateLocation(
+  accessToken: string,
+  id: string,
+  payload: UpdateLocationPayload,
+) {
+  const res = await api.put(`/locations/${id}`, payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data as LocationProfile;
+}
+
+export type UpdateProfilePayload = {
+  name?: string;
+  email?: string;
+};
+
+export async function updateProfile(
+  accessToken: string,
+  payload: UpdateProfilePayload,
+) {
+  const res = await api.put("/profile", payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data;
+}
+
+export type CreatePetPayload = {
+  name: string;
+  species: "Dog" | "Cat";
+  breed?: string;
+  ageMonths: number;
+  gender: "Male" | "Female";
+  vaccinationStatus: "UpToDate" | "Partial" | "None";
+  medicalConditions: boolean;
+  medicalHistory?: string;
+};
+
+export type UpdatePetPayload = {
+  name?: string;
+  species?: "Dog" | "Cat";
+  breed?: string | null;
+  ageMonths?: number;
+  gender?: "Male" | "Female";
+  vaccinationStatus?: "UpToDate" | "Partial" | "None";
+  medicalConditions?: boolean;
+  medicalHistory?: string | null;
+};
+
+export async function createPet(accessToken: string, payload: CreatePetPayload) {
+  const res = await api.post("/pets", payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data as PetProfile;
+}
+
+export async function updatePet(
+  accessToken: string,
+  id: string,
+  payload: UpdatePetPayload,
+) {
+  const res = await api.put(`/pets/${id}`, payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data as PetProfile;
+}
+
+export async function deletePet(accessToken: string, id: string) {
+  const res = await api.delete(`/pets/${id}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data;
 }

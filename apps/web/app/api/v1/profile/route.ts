@@ -29,6 +29,28 @@ const profileSchema = z.object({
     .min(1, "At least one pet is required"),
 });
 
+const updateProfileSchema = z.object({
+  name: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+});
+
+export const PUT = apiHandler(async (req: NextRequest) => {
+  const userId = req.headers.get("x-user-id")!;
+  const body = await updateProfileSchema.parseAsync(await req.json());
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: body,
+    select: { id: true, name: true, email: true },
+  });
+
+  return NextResponse.json({
+    status: 200,
+    success: true,
+    data: user,
+  });
+});
+
 export const GET = apiHandler(async (req: NextRequest) => {
   const userId = req.headers.get("x-user-id")!;
 
@@ -155,7 +177,6 @@ export const POST = apiHandler(async (req: NextRequest) => {
       }),
     ),
   ]);
-
 
   return NextResponse.json({
     status: 200,

@@ -111,6 +111,11 @@ export default function BookingDetailScreen() {
           label="Species"
           value={booking.pet?.species || "-"}
         />
+        <DetailRow
+          icon="location"
+          label="Location"
+          value={booking.location?.label || "-"}
+        />
         {booking.scheduledAt && (
           <DetailRow
             icon="time"

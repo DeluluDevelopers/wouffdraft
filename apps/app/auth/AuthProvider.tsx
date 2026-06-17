@@ -33,6 +33,7 @@ type AuthContextType = AuthState & {
   loginWithOtp: (phone: string, otp: string) => Promise<void>;
   refreshSession: () => Promise<boolean>;
   finishProfile: (payload: CompleteProfilePayload) => Promise<void>;
+  refreshProfile: () => Promise<void>;
   logout: () => Promise<void>;
   setPhone: (phone: string | null) => void;
 };
@@ -168,6 +169,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const refreshProfile = async () => {
+    if (!state.accessToken) return;
+    const profile = await getProfile(state.accessToken);
+    setState((prev) => ({
+      ...prev,
+      profile,
+      profileCompleted: profile.profileStatus === "PROFILE_COMPLETED",
+    }));
+    queryClient.setQueryData(["profile"], profile);
+  };
+
   const value = useMemo<AuthContextType>(
     () => ({
       ...state,
@@ -176,6 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loginWithOtp,
       refreshSession,
       finishProfile,
+      refreshProfile,
       logout,
       setPhone: (phone) => setState((prev) => ({ ...prev, phone })),
     }),

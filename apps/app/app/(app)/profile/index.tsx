@@ -1,0 +1,870 @@
+import React, { useState } from "react";
+import {
+  Text,
+  View,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  TextInput,
+  Modal,
+  Animated,
+  Dimensions,
+  Alert,
+  Switch,
+  ActivityIndicator,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { useAuth } from "@/auth/useAuth";
+import { Screen } from "@/ui/Screen";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  updateProfile,
+  createPet,
+  updatePet,
+  deletePet,
+  type PetProfile,
+  type CreatePetPayload,
+} from "@/lib/api";
+
+const SPECIES_OPTIONS = ["Dog", "Cat"] as const;
+const GENDER_OPTIONS = ["Male", "Female"] as const;
+const VACCINATION_OPTIONS = ["UpToDate", "Partial", "None"] as const;
+
+type PetFormData = {
+  name: string;
+  species: "Dog" | "Cat";
+  breed: string;
+  ageMonths: string;
+  gender: "Male" | "Female";
+  vaccinationStatus: "UpToDate" | "Partial" | "None";
+  medicalConditions: boolean;
+  medicalHistory: string;
+};
+
+const emptyPetForm = (): PetFormData => ({
+  name: "",
+  species: "Dog",
+  breed: "",
+  ageMonths: "",
+  gender: "Male",
+  vaccinationStatus: "UpToDate",
+  medicalConditions: false,
+  medicalHistory: "",
+});
+
+export default function ProfileScreen() {
+  const { profile, accessToken, refreshProfile } = useAuth();
+  const router = useRouter();
+  const nameSlideAnim = React.useRef(new Animated.Value(0)).current;
+  const nameBackdropAnim = React.useRef(new Animated.Value(0)).current;
+  const petSlideAnim = React.useRef(new Animated.Value(0)).current;
+  const petBackdropAnim = React.useRef(new Animated.Value(0)).current;
+
+  // Name edit modal
+  const [nameModalVisible, setNameModalVisible] = useState(false);
+  const [editName, setEditName] = useState("");
+
+  // Pet form modal
+  const [petModalVisible, setPetModalVisible] = useState(false);
+  const [petForm, setPetForm] = useState<PetFormData>(emptyPetForm());
+  const [editingPetId, setEditingPetId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const openNameModal = () => {
+    setEditName(profile?.name || "");
+    setNameModalVisible(true);
+    Animated.parallel([
+      Animated.spring(nameSlideAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        damping: 20,
+        stiffness: 200,
+      }),
+      Animated.timing(nameBackdropAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const closeNameModal = () => {
+    Animated.parallel([
+      Animated.timing(nameSlideAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(nameBackdropAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setNameModalVisible(false));
+  };
+
+  const saveName = async () => {
+    if (!accessToken || !editName.trim()) return;
+    setSaving(true);
+    try {
+      await updateProfile(accessToken, { name: editName.trim() });
+      await refreshProfile();
+      closeNameModal();
+    } catch {
+      Alert.alert("Error", "Failed to update name");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openPetModal = (pet?: PetProfile) => {
+    if (pet) {
+      setEditingPetId(pet.id);
+      setPetForm({
+        name: pet.name,
+        species: pet.species,
+        breed: pet.breed || "",
+        ageMonths: String(pet.ageMonths),
+        gender: pet.gender,
+        vaccinationStatus: pet.vaccinationStatus,
+        medicalConditions: pet.medicalConditions,
+        medicalHistory: pet.medicalHistory || "",
+      });
+    } else {
+      setEditingPetId(null);
+      setPetForm(emptyPetForm());
+    }
+    setPetModalVisible(true);
+    Animated.parallel([
+      Animated.spring(petSlideAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        damping: 20,
+        stiffness: 200,
+      }),
+      Animated.timing(petBackdropAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const closePetModal = () => {
+    Animated.parallel([
+      Animated.timing(petSlideAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(petBackdropAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setPetModalVisible(false);
+      setEditingPetId(null);
+    });
+  };
+
+  const savePet = async () => {
+    if (!accessToken) return;
+    if (!petForm.name.trim()) {
+      Alert.alert("Validation", "Pet name is required");
+      return;
+    }
+
+    const age = parseInt(petForm.ageMonths, 10);
+    if (!age || age <= 0) {
+      Alert.alert("Validation", "Please enter a valid age in months");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload: CreatePetPayload = {
+        name: petForm.name.trim(),
+        species: petForm.species,
+        breed: petForm.breed.trim() || undefined,
+        ageMonths: age,
+        gender: petForm.gender,
+        vaccinationStatus: petForm.vaccinationStatus,
+        medicalConditions: petForm.medicalConditions,
+        medicalHistory: petForm.medicalHistory.trim() || undefined,
+      };
+
+      if (editingPetId) {
+        await updatePet(accessToken, editingPetId, payload);
+      } else {
+        await createPet(accessToken, payload);
+      }
+
+      await refreshProfile();
+      closePetModal();
+    } catch {
+      Alert.alert("Error", "Failed to save pet");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const confirmDeletePet = (pet: PetProfile) => {
+    Alert.alert(`Delete ${pet.name}?`, "This action cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => handleDeletePet(pet.id),
+      },
+    ]);
+  };
+
+  const handleDeletePet = async (petId: string) => {
+    if (!accessToken) return;
+    try {
+      await deletePet(accessToken, petId);
+      await refreshProfile();
+    } catch {
+      Alert.alert("Error", "Failed to delete pet");
+    }
+  };
+
+  const nameTranslateY = nameSlideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [600, 0],
+  });
+  const nameBackdropOpacity = nameBackdropAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.6],
+  });
+  const petTranslateY = petSlideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [600, 0],
+  });
+  const petBackdropOpacity = petBackdropAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.6],
+  });
+
+  const pets = profile?.pets || [];
+  const primaryLocation = profile?.location?.[0] || null;
+
+  return (
+    <Screen>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Text style={styles.title}>Profile</Text>
+
+        {/* Personal Info Section */}
+        <Text style={styles.sectionTitle}>Personal Information</Text>
+        <View style={styles.card}>
+          <View style={styles.infoRow}>
+            <Ionicons name="person-outline" size={20} color="#A8A8B3" />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Name</Text>
+              <Text style={styles.infoValue}>{profile?.name || "Not set"}</Text>
+            </View>
+            <Pressable onPress={openNameModal} style={styles.editBtn}>
+              <Ionicons name="pencil" size={18} color="#4ADE80" />
+            </Pressable>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+            <Ionicons name="call-outline" size={20} color="#A8A8B3" />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Phone</Text>
+              <Text style={styles.infoValue}>{profile?.phoneNumber || ""}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Location Section */}
+        <Text style={styles.sectionTitle}>Location</Text>
+        <Pressable
+          style={styles.card}
+          onPress={() => router.push("/(app)/profile/locations")}
+        >
+          <View style={styles.infoRow}>
+            <Ionicons name="location-outline" size={20} color="#A8A8B3" />
+            <View style={styles.infoContent}>
+              {primaryLocation ? (
+                <>
+                  <Text style={styles.infoValue}>
+                    {primaryLocation.address.split(",")[0]}
+                  </Text>
+                </>
+              ) : (
+                <Text style={[styles.infoValue, { color: "#666" }]}>
+                  No location saved
+                </Text>
+              )}
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#555" />
+          </View>
+        </Pressable>
+
+        {/* Pets Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Pets ({pets.length})</Text>
+          <Pressable onPress={() => openPetModal()} style={styles.addPetBtn}>
+            <Ionicons name="add" size={20} color="#4ADE80" />
+            <Text style={styles.addPetText}>Add Pet</Text>
+          </Pressable>
+        </View>
+
+        {pets.length === 0 ? (
+          <Text style={styles.emptyText}>
+            No pets added yet. Tap "Add Pet" to get started.
+          </Text>
+        ) : (
+          pets.map((pet) => (
+            <View key={pet.id} style={styles.petCard}>
+              <View style={styles.petCardLeft}>
+                <View style={styles.petIcon}>
+                  <Ionicons
+                    name={pet.species === "Dog" ? "paw" : "paw-outline"}
+                    size={22}
+                    color="#FFFFFF"
+                  />
+                </View>
+                <View style={styles.petInfo}>
+                  <Text style={styles.petName}>{pet.name}</Text>
+                  <Text style={styles.petDetail}>
+                    {pet.species}
+                    {pet.breed ? ` · ${pet.breed}` : ""} · {pet.ageMonths}mo ·{" "}
+                    {pet.gender === "Male" ? "♂" : "♀"}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.petActions}>
+                <Pressable
+                  onPress={() => openPetModal(pet)}
+                  style={styles.petActionBtn}
+                >
+                  <Ionicons name="pencil" size={18} color="#A8A8B3" />
+                </Pressable>
+                <Pressable
+                  onPress={() => confirmDeletePet(pet)}
+                  style={styles.petActionBtn}
+                >
+                  <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+                </Pressable>
+              </View>
+            </View>
+          ))
+        )}
+      </ScrollView>
+
+      {/* Name Edit Modal */}
+      <Modal
+        visible={nameModalVisible}
+        transparent
+        animationType="none"
+        onRequestClose={closeNameModal}
+      >
+        <View style={StyleSheet.absoluteFill}>
+          <Pressable style={styles.backdrop} onPress={closeNameModal}>
+            <Animated.View
+              style={[
+                StyleSheet.absoluteFill,
+                { opacity: nameBackdropOpacity, backgroundColor: "#000" },
+              ]}
+            />
+          </Pressable>
+        </View>
+        <Animated.View
+          style={[
+            styles.sheet,
+            { transform: [{ translateY: nameTranslateY }] },
+          ]}
+        >
+          <View style={styles.sheetContent}>
+            <View style={styles.handleRow}>
+              <View style={styles.handle} />
+              <Pressable onPress={closeNameModal} style={styles.closeX}>
+                <Ionicons name="close" size={22} color="#888" />
+              </Pressable>
+            </View>
+            <Text style={styles.sheetTitle}>Edit Name</Text>
+            <TextInput
+              style={styles.input}
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Your name"
+              placeholderTextColor="#555"
+              autoFocus
+            />
+            <Pressable
+              style={[
+                styles.saveBtn,
+                (!editName.trim() || saving) && styles.saveBtnDisabled,
+              ]}
+              onPress={saveName}
+              disabled={!editName.trim() || saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#0B0B0F" />
+              ) : (
+                <Text style={styles.saveBtnText}>Save</Text>
+              )}
+            </Pressable>
+          </View>
+        </Animated.View>
+      </Modal>
+
+      {/* Pet Edit/Create Modal */}
+      <Modal
+        visible={petModalVisible}
+        transparent
+        animationType="none"
+        onRequestClose={closePetModal}
+      >
+        <View style={StyleSheet.absoluteFill}>
+          <Pressable style={styles.backdrop} onPress={closePetModal}>
+            <Animated.View
+              style={[
+                StyleSheet.absoluteFill,
+                { opacity: petBackdropOpacity, backgroundColor: "#000" },
+              ]}
+            />
+          </Pressable>
+        </View>
+        <Animated.View
+          style={[
+            styles.sheet,
+            {
+              maxHeight: Dimensions.get("window").height * 0.85,
+              transform: [{ translateY: petTranslateY }],
+            },
+          ]}
+        >
+          <View style={styles.sheetContent}>
+            <View style={styles.handleRow}>
+              <View style={styles.handle} />
+              <Pressable onPress={closePetModal} style={styles.closeX}>
+                <Ionicons name="close" size={22} color="#888" />
+              </Pressable>
+            </View>
+            <Text style={styles.sheetTitle}>
+              {editingPetId ? "Edit Pet" : "Add Pet"}
+            </Text>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={styles.scrollArea}
+            >
+              {/* Name */}
+              <Text style={styles.fieldLabel}>Name</Text>
+              <TextInput
+                style={styles.input}
+                value={petForm.name}
+                onChangeText={(t) => setPetForm({ ...petForm, name: t })}
+                placeholder="Pet name"
+                placeholderTextColor="#555"
+              />
+
+              {/* Species */}
+              <Text style={styles.fieldLabel}>Species</Text>
+              <View style={styles.optionRow}>
+                {SPECIES_OPTIONS.map((s) => (
+                  <Pressable
+                    key={s}
+                    style={[
+                      styles.optionChip,
+                      petForm.species === s && styles.optionChipActive,
+                    ]}
+                    onPress={() => setPetForm({ ...petForm, species: s })}
+                  >
+                    <Text
+                      style={[
+                        styles.optionChipText,
+                        petForm.species === s && styles.optionChipTextActive,
+                      ]}
+                    >
+                      {s}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              {/* Breed */}
+              <Text style={styles.fieldLabel}>Breed (optional)</Text>
+              <TextInput
+                style={styles.input}
+                value={petForm.breed}
+                onChangeText={(t) => setPetForm({ ...petForm, breed: t })}
+                placeholder="e.g. Labrador, Persian"
+                placeholderTextColor="#555"
+              />
+
+              {/* Age */}
+              <Text style={styles.fieldLabel}>Age (months)</Text>
+              <TextInput
+                style={styles.input}
+                value={petForm.ageMonths}
+                onChangeText={(t) =>
+                  setPetForm({
+                    ...petForm,
+                    ageMonths: t.replace(/[^0-9]/g, ""),
+                  })
+                }
+                placeholder="e.g. 12"
+                placeholderTextColor="#555"
+                keyboardType="numeric"
+              />
+
+              {/* Gender */}
+              <Text style={styles.fieldLabel}>Gender</Text>
+              <View style={styles.optionRow}>
+                {GENDER_OPTIONS.map((g) => (
+                  <Pressable
+                    key={g}
+                    style={[
+                      styles.optionChip,
+                      petForm.gender === g && styles.optionChipActive,
+                    ]}
+                    onPress={() => setPetForm({ ...petForm, gender: g })}
+                  >
+                    <Text
+                      style={[
+                        styles.optionChipText,
+                        petForm.gender === g && styles.optionChipTextActive,
+                      ]}
+                    >
+                      {g === "Male" ? "♂ Male" : "♀ Female"}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              {/* Vaccination Status */}
+              <Text style={styles.fieldLabel}>Vaccination Status</Text>
+              <View style={styles.optionRow}>
+                {VACCINATION_OPTIONS.map((v) => (
+                  <Pressable
+                    key={v}
+                    style={[
+                      styles.optionChip,
+                      petForm.vaccinationStatus === v &&
+                        styles.optionChipActive,
+                    ]}
+                    onPress={() =>
+                      setPetForm({ ...petForm, vaccinationStatus: v })
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.optionChipText,
+                        petForm.vaccinationStatus === v &&
+                          styles.optionChipTextActive,
+                      ]}
+                    >
+                      {v === "UpToDate"
+                        ? "Up to Date"
+                        : v === "Partial"
+                          ? "Partial"
+                          : "None"}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              {/* Medical Conditions */}
+              <View style={styles.switchRow}>
+                <Text style={styles.fieldLabel}>Medical Conditions</Text>
+                <Switch
+                  value={petForm.medicalConditions}
+                  onValueChange={(v) =>
+                    setPetForm({ ...petForm, medicalConditions: v })
+                  }
+                  trackColor={{ false: "#333", true: "#1A3A2A" }}
+                  thumbColor={petForm.medicalConditions ? "#4ADE80" : "#888"}
+                />
+              </View>
+
+              {petForm.medicalConditions && (
+                <>
+                  <Text style={styles.fieldLabel}>Medical History</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    value={petForm.medicalHistory}
+                    onChangeText={(t) =>
+                      setPetForm({ ...petForm, medicalHistory: t })
+                    }
+                    placeholder="Describe medical history..."
+                    placeholderTextColor="#555"
+                    multiline
+                  />
+                </>
+              )}
+
+              <Pressable
+                style={[
+                  styles.saveBtn,
+                  (!petForm.name.trim() || !petForm.ageMonths || saving) &&
+                    styles.saveBtnDisabled,
+                ]}
+                onPress={savePet}
+                disabled={!petForm.name.trim() || !petForm.ageMonths || saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#0B0B0F" />
+                ) : (
+                  <Text style={styles.saveBtnText}>
+                    {editingPetId ? "Save Changes" : "Add Pet"}
+                  </Text>
+                )}
+              </Pressable>
+            </ScrollView>
+          </View>
+        </Animated.View>
+      </Modal>
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  title: {
+    color: "#FFFFFF",
+    fontSize: 28,
+    fontWeight: "800",
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    color: "#8B8B96",
+    fontSize: 13,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 10,
+    marginTop: 4,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+    marginTop: 4,
+  },
+  card: {
+    backgroundColor: "#111118",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#21212A",
+    padding: 16,
+    marginBottom: 20,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 4,
+  },
+  infoContent: {
+    flex: 1,
+    gap: 2,
+  },
+  infoLabel: {
+    color: "#666",
+    fontSize: 12,
+  },
+  infoValue: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  infoSubtext: {
+    color: "#666",
+    fontSize: 13,
+    marginTop: 1,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#21212A",
+    marginVertical: 12,
+  },
+  editBtn: {
+    padding: 6,
+  },
+  addPetBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: "#1A2A1A",
+  },
+  addPetText: {
+    color: "#4ADE80",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  emptyText: {
+    color: "#666",
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  petCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#111118",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#21212A",
+    padding: 14,
+    marginBottom: 10,
+  },
+  petCardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  petIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#1A1A24",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  petInfo: {
+    gap: 2,
+    flex: 1,
+  },
+  petName: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  petDetail: {
+    color: "#A8A8B3",
+    fontSize: 13,
+  },
+  petActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  petActionBtn: {
+    padding: 8,
+  },
+  backdrop: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#111118",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: Dimensions.get("window").height * 0.75,
+  },
+  sheetContent: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 40,
+  },
+  handleRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  handle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#333",
+  },
+  closeX: {
+    position: "absolute",
+    right: 0,
+    padding: 4,
+  },
+  sheetTitle: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 20,
+  },
+  scrollArea: {
+    maxHeight: Dimensions.get("window").height * 0.55,
+  },
+  input: {
+    backgroundColor: "#1A1A24",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#21212A",
+    color: "#FFFFFF",
+    fontSize: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 16,
+  },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: "top",
+  },
+  fieldLabel: {
+    color: "#A8A8B3",
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  optionRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 16,
+  },
+  optionChip: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: "#1A1A24",
+    borderWidth: 1,
+    borderColor: "#21212A",
+    alignItems: "center",
+  },
+  optionChipActive: {
+    borderColor: "#4ADE80",
+    backgroundColor: "#1A2A1A",
+  },
+  optionChipText: {
+    color: "#888",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  optionChipTextActive: {
+    color: "#FFFFFF",
+  },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  saveBtn: {
+    backgroundColor: "#FFFFFF",
+    height: 54,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+    marginBottom: 20,
+  },
+  saveBtnDisabled: {
+    backgroundColor: "#24242B",
+  },
+  saveBtnText: {
+    color: "#0B0B0F",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+});
