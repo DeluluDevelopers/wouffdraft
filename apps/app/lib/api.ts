@@ -17,22 +17,62 @@ export type VerifyOtpPayload = {
   otp: string;
 };
 
-export type CompleteProfilePayload = {
-  fullName: string;
-  email: string;
-};
-
 export type AuthTokens = {
   accessToken: string;
   refreshToken: string;
 };
 
+export type PetProfile = {
+  id: string;
+  name: string;
+  species: "Dog" | "Cat";
+  breed: string | null;
+  ageMonths: number;
+  gender: "Male" | "Female";
+  vaccinationStatus: "UpToDate" | "Partial" | "None";
+  medicalConditions: boolean;
+  medicalHistory: string | null;
+  createdAt: string;
+};
+
+export type LocationProfile = {
+  id: string;
+  label: string;
+  placeId: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+};
+
 export type Profile = {
   id: string;
-  fullName?: string;
-  email?: string;
-  phone?: string;
-  profileCompleted: boolean;
+  phoneNumber: string;
+  email: string | null;
+  name: string | null;
+  profileStatus: string;
+  location: LocationProfile | null;
+  pets: PetProfile[];
+};
+
+export type CompleteProfilePayload = {
+  name: string;
+  label: string;
+  placeId: string;
+  pets: Array<{
+    name: string;
+    species: "Dog" | "Cat";
+    breed?: string;
+    ageMonths: number;
+    gender: "Male" | "Female";
+    vaccinationStatus: "UpToDate" | "Partial" | "None";
+    medicalConditions: boolean;
+    medicalHistory?: string;
+  }>;
+};
+
+export type AddressPrediction = {
+  description: string;
+  placeId: string;
 };
 
 export async function sendOtp(payload: SendOtpPayload) {
@@ -75,4 +115,11 @@ export async function completeProfile(
     },
   });
   return res.data;
+}
+
+export async function searchAddress(input: string) {
+  const res = await api.get("/address/autocomplete", {
+    params: { input },
+  });
+  return res.data.predictions as AddressPrediction[];
 }

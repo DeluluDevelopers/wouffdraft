@@ -9,13 +9,16 @@ import { sendSMS } from "../../../../lib/sms";
 export const POST = apiHandler(async (req: NextRequest) => {
   const { phoneNumber } = await req.json();
 
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { phoneNumber },
     include: { otps: true },
   });
 
   if (!user) {
-    throw new NotFoundError("User not found");
+    user = await prisma.user.create({
+      data: { phoneNumber },
+      include: { otps: true },
+    });
   }
 
   if (user.otps.some((otp) => otp.expiresAt > new Date())) {

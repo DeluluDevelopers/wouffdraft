@@ -17,18 +17,20 @@ export default function HomeScreen() {
       <View style={styles.card}>
         <Text style={styles.title}>Home</Text>
         <Text style={styles.subtitle}>
-          {profile?.fullName ? `Hello, ${profile.fullName}` : "Welcome back"}
+          {profile?.name ? `Hello, ${profile.name}` : "Welcome back"}
         </Text>
 
         <View style={styles.infoBox}>
           <Text style={styles.infoLabel}>Phone</Text>
-          <Text style={styles.infoValue}>{profile?.phone || "-"}</Text>
+          <Text style={styles.infoValue}>{profile?.phoneNumber || "-"}</Text>
         </View>
 
         <View style={styles.infoBox}>
           <Text style={styles.infoLabel}>Profile status</Text>
           <Text style={styles.infoValue}>
-            {profile?.profileCompleted ? "Completed" : "Incomplete"}
+            {profile?.profileStatus === "PROFILE_COMPLETED"
+              ? "Completed"
+              : "Incomplete"}
           </Text>
         </View>
 

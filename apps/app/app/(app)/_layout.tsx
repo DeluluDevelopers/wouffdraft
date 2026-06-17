@@ -21,8 +21,7 @@ export default function AppLayout() {
   }
 
   if (!isAuthenticated) return <Redirect href="/(auth)/login" />;
-  if (!profileCompleted)
-    return <Redirect href="/(onboarding)/completeProfile" />;
+  if (!profileCompleted) return <Redirect href="/(onboarding)/completeProfile/address" />;
 
   return <Stack screenOptions={{ headerShown: false }} />;
 }

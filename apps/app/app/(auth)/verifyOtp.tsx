@@ -22,7 +22,7 @@ export default function VerifyOtpScreen() {
       if (profileCompleted) {
         router.replace("/(app)/home");
       } else {
-        router.replace("/(onboarding)/completeProfile");
+        router.replace("/(onboarding)/completeProfile/address");
       }
     },
     onError: () => {

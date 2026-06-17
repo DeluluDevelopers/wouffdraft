@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({
       ...prev,
       profile,
-      profileCompleted: !!profile.profileCompleted,
+      profileCompleted: profile.profileStatus === "PROFILE_COMPLETED",
       isAuthenticated: true,
     }));
     return profile;

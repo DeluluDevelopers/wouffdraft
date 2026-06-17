@@ -22,7 +22,7 @@ export default function Index() {
 
   if (!isAuthenticated) return <Redirect href="/(auth)/login" />;
   if (!profileCompleted)
-    return <Redirect href="/(onboarding)/completeProfile" />;
+    return <Redirect href="/(onboarding)/completeProfile/address" />;
 
   return <Redirect href="/(app)/home" />;
 }
