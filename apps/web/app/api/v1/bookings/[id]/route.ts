@@ -8,7 +8,7 @@ export const GET = apiHandler(async (req: NextRequest) => {
 
   const booking = await prisma.booking.findUnique({
     where: { id },
-    include: { pet: true },
+    include: { pet: true, location: true },
   });
 
   if (!booking) {

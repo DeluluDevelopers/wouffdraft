@@ -72,6 +72,8 @@ model Location {
   latitude Float
   longitude Float
 
+  bookings Booking[]
+
   @@index([placeId])
 }
 
@@ -124,6 +126,9 @@ model Booking {
   petId String
   pet Pet @relation(fields: [petId], references: [id])
 
+  locationId String
+  location Location @relation(fields: [locationId], references: [id])
+
   type BookingType
   service Service
   scheduledAt DateTime?
@@ -133,4 +138,5 @@ model Booking {
 
   @@index([userId])
   @@index([petId])
+  @@index([locationId])
 }

@@ -7,6 +7,7 @@ import z from "zod";
 const createBookingSchema = z
   .object({
     petId: z.uuid(),
+    locationId: z.uuid(),
     service: z.enum(["Bathing", "Cutting", "Hygiene"]),
     type: z.enum(["Instant", "Scheduled"]),
     scheduledAt: z.coerce.date().optional(),
@@ -36,14 +37,24 @@ export const POST = apiHandler(async (req: NextRequest) => {
     throw new NotFoundError("Pet not found");
   }
 
+  const location = await prisma.location.findUnique({
+    where: { id: body.locationId },
+  });
+
+  if (!location || location.userId !== userId) {
+    throw new NotFoundError("Location not found");
+  }
+
   const booking = await prisma.booking.create({
     data: {
       userId,
       petId: body.petId,
+      locationId: body.locationId,
       service: body.service,
       type: body.type,
       scheduledAt: body.scheduledAt ?? null,
     },
+    include: { pet: true, location: true },
   });
 
   return NextResponse.json({ status: 201, success: true, data: booking });
@@ -59,7 +70,7 @@ export const GET = apiHandler(async (req: NextRequest) => {
 
   const bookings = await prisma.booking.findMany({
     where,
-    include: { pet: true },
+    include: { pet: true, location: true },
     orderBy: { createdAt: "desc" },
   });
 
