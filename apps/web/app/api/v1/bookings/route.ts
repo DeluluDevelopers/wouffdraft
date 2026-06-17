@@ -9,7 +9,7 @@ const createBookingSchema = z
     petId: z.uuid(),
     service: z.enum(["Bathing", "Cutting", "Hygiene"]),
     type: z.enum(["Instant", "Scheduled"]),
-    scheduledAt: z.date().optional(),
+    scheduledAt: z.coerce.date().optional(),
   })
   .refine(
     (data) => {
@@ -42,7 +42,7 @@ export const POST = apiHandler(async (req: NextRequest) => {
       petId: body.petId,
       service: body.service,
       type: body.type,
-      scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null,
+      scheduledAt: body.scheduledAt ?? null,
     },
   });
 

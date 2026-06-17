@@ -117,6 +117,52 @@ export async function completeProfile(
   return res.data;
 }
 
+export type Booking = {
+  id: string;
+  userId: string;
+  petId: string;
+  pet: PetProfile;
+  service: "Bathing" | "Cutting" | "Hygiene";
+  type: "Instant" | "Scheduled";
+  scheduledAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateBookingPayload = {
+  petId: string;
+  service: "Bathing" | "Cutting" | "Hygiene";
+  type: "Instant" | "Scheduled";
+  scheduledAt?: string;
+};
+
+export async function createBooking(
+  accessToken: string,
+  payload: CreateBookingPayload,
+) {
+  const res = await api.post("/bookings", payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data as Booking;
+}
+
+export async function getBookings(accessToken: string, petId?: string) {
+  const params: Record<string, string> = {};
+  if (petId) params.petId = petId;
+  const res = await api.get("/bookings", {
+    params,
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data as Booking[];
+}
+
+export async function getBooking(accessToken: string, id: string) {
+  const res = await api.get(`/bookings/${id}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data as Booking;
+}
+
 export async function searchAddress(input: string) {
   const res = await api.get("/address/autocomplete", {
     params: { input },
