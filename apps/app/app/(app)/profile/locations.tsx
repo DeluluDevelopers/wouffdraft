@@ -68,7 +68,7 @@ export default function LocationsScreen() {
   }, [accessToken]);
 
   useEffect(() => {
-    if (!query.trim() || query.length < 3) {
+    if (!query.trim() || query.length < 3 || selectedAddress) {
       setPredictions([]);
       return;
     }
@@ -84,7 +84,7 @@ export default function LocationsScreen() {
       }
     }, 400);
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, selectedAddress]);
 
   const openAddModal = () => {
     setQuery("");
@@ -270,6 +270,7 @@ export default function LocationsScreen() {
                           key={p.placeId}
                           style={styles.predictionRow}
                           onPress={() => selectPrediction(p)}
+                          pointerEvents="box-none"
                         >
                           <Ionicons
                             name="location-outline"
@@ -314,93 +315,90 @@ export default function LocationsScreen() {
               </View>
             </KeyboardAvoidingView>
           ) : (
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'macos' ? "padding" : "height"}
-              keyboardVerticalOffset={100}
-              style={styles.keyboardAvoid}
-            >
-              <View style={styles.sheetContent}>
-                <View style={styles.handleRow}>
-                  <View style={styles.handle} />
-                  <Pressable onPress={closeModal} style={styles.closeX}>
-                    <Ionicons name="close" size={22} color={Colors.light.onSurfaceVariant} />
-                  </Pressable>
-                </View>
-                <Text style={styles.sheetTitle}>Add Location</Text>
-
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  style={styles.scrollArea}
-                >
-                  <Text style={styles.fieldLabel}>Search address</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={query}
-                    onChangeText={(t) => {
-                      setQuery(t);
-                      setSelectedPlaceId(null);
-                      setSelectedAddress("");
-                    }}
-                    placeholder="Type your address..."
-                    placeholderTextColor={Colors.light.onSurfaceVariant}
-                    autoFocus
-                  />
-                  {searching && (
-                    <ActivityIndicator
-                      color={Colors.light.primary}
-                      style={{ marginBottom: 8 }}
-                    />
-                  )}
-                  {predictions.length > 0 && (
-                    <View style={styles.predictions}>
-                      {predictions.map((p) => (
-                        <Pressable
-                          key={p.placeId}
-                          style={styles.predictionRow}
-                          onPress={() => selectPrediction(p)}
-                        >
-                          <Ionicons
-                            name="location-outline"
-                            size={18}
-                            color={Colors.light.onSurfaceVariant}
-                          />
-                          <Text style={styles.predictionText}>{p.description}</Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  )}
-
-                  {selectedAddress ? (
-                    <>
-                      <Text style={styles.fieldLabel}>Label</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={label}
-                        onChangeText={setLabel}
-                        placeholder="e.g. Home, Office"
-                        placeholderTextColor={Colors.light.onSurfaceVariant}
-                      />
-                      <Text style={styles.selectedAddress}>{selectedAddress}</Text>
-                    </>
-                  ) : null}
-
-                  <Pressable
-                    style={[
-                      styles.saveBtn,
-                      (!canSave || saving) && styles.saveBtnDisabled,
-                    ]}
-                    onPress={saveLocation}
-                    disabled={!canSave || saving}
-                  >
-                    {saving ? (
-                      <ActivityIndicator color={Colors.light.onPrimary} />
-                    ) : (
-                      <Text style={styles.saveBtnText}>Save Location</Text>
-                    )}
-                  </Pressable>
-                </ScrollView>
+            <View style={styles.sheetContent}>
+              <View style={styles.handleRow}>
+                <View style={styles.handle} />
+                <Pressable onPress={closeModal} style={styles.closeX}>
+                  <Ionicons name="close" size={22} color={Colors.light.onSurfaceVariant} />
+                </Pressable>
               </View>
-            </KeyboardAvoidingView>
+              <Text style={styles.sheetTitle}>Add Location</Text>
+
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={styles.scrollArea}
+                keyboardShouldPersistTaps="handled"
+              >
+                <Text style={styles.fieldLabel}>Search address</Text>
+                <TextInput
+                  style={styles.input}
+                  value={query}
+                  onChangeText={(t) => {
+                    setQuery(t);
+                    setSelectedPlaceId(null);
+                    setSelectedAddress("");
+                  }}
+                  placeholder="Type your address..."
+                  placeholderTextColor={Colors.light.onSurfaceVariant}
+                  autoFocus
+                  onSubmitEditing={() => {}}
+                />
+                {searching && (
+                  <ActivityIndicator
+                    color={Colors.light.primary}
+                    style={{ marginBottom: 8 }}
+                  />
+                )}
+                {predictions.length > 0 && (
+                  <View style={styles.predictions}>
+                    {predictions.map((p) => (
+                      <Pressable
+                        key={p.placeId}
+                        style={styles.predictionRow}
+                        onPress={() => selectPrediction(p)}
+                        pointerEvents="box-none"
+                      >
+                        <Ionicons
+                          name="location-outline"
+                          size={18}
+                          color={Colors.light.onSurfaceVariant}
+                        />
+                        <Text style={styles.predictionText}>{p.description}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+
+                {selectedAddress ? (
+                  <>
+                    <Text style={styles.fieldLabel}>Label</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={label}
+                      onChangeText={setLabel}
+                      placeholder="e.g. Home, Office"
+                      placeholderTextColor={Colors.light.onSurfaceVariant}
+                    />
+                    <Text style={styles.selectedAddress}>{selectedAddress}</Text>
+                  </>
+                ) : null}
+
+                <Pressable
+                  style={[
+                    styles.saveBtn,
+                    (!canSave || saving) && styles.saveBtnDisabled,
+                  ]}
+                  onPress={saveLocation}
+                  disabled={!canSave || saving}
+                >
+                  {saving ? (
+                    <ActivityIndicator color={Colors.light.onPrimary} />
+                  ) : (
+                    <Text style={styles.saveBtnText}>Save Location</Text>
+                  )}
+                </Pressable>
+              </ScrollView>
+            </View>
           )}
         </Animated.View>
       </Modal>

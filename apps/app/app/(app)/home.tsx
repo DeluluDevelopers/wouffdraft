@@ -186,13 +186,6 @@ export default function HomeScreen() {
 
   return (
     <Screen>
-      <View style={styles.bannerContainer}>
-        <Image
-          source={require("@/assets/images/bannerImage.png")}
-          style={styles.bannerImage}
-          resizeMode="cover"
-        />
-      </View>
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>
@@ -203,6 +196,13 @@ export default function HomeScreen() {
         <Pressable onPress={onLogout} style={styles.logoutBtn}>
           <Ionicons name="log-out" size={22} color={Colors.light.onSurfaceVariant} />
         </Pressable>
+      </View>
+      <View style={styles.bannerContainer}>
+        <Image
+          source={require("@/assets/images/bannerImage.png")}
+          style={styles.bannerImage}
+          resizeMode="cover"
+        />
       </View>
 
       <View style={styles.servicesGrid}>
@@ -458,8 +458,8 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   servicesGrid: {
-    flexDirection: "row",
-    gap: 12,
+    flexDirection: "column",
+    gap: 16,
     marginTop: 4,
   },
   bannerContainer: {
@@ -474,17 +474,17 @@ const styles = StyleSheet.create({
   },
   bannerImage: {
     width: "100%",
-    height: 180,
+    height: 140,
   },
   serviceCard: {
-    flex: 1,
+    width: "100%",
     backgroundColor: Colors.light.surfaceContainerLow,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.light.outlineVariant,
-    padding: 20,
+    padding: 24,
     alignItems: "center",
-    gap: 12,
+    gap: 16,
     shadowColor: "#0c5252",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -492,8 +492,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   serviceImage: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     borderRadius: 16,
     resizeMode: "cover",
   },

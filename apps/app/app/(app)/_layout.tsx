@@ -60,18 +60,18 @@ export default function AppLayout() {
           }}
         />
         <Tabs.Screen
-          name="profile"
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
           name="bookings"
           options={{
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="calendar" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person" size={size} color={color} />
             ),
           }}
         />
