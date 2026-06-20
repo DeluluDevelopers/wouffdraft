@@ -124,7 +124,7 @@ export type Booking = {
   pet: PetProfile;
   locationId: string;
   location: LocationProfile;
-  service: "Bathing" | "Cutting" | "Hygiene";
+  service: "Bathing" | "Cutting" | "Hygiene" | "Blow Dry" | "Nail Trim" | "Spa" | "Cleaning";
   type: "Instant" | "Scheduled";
   scheduledAt: string | null;
   createdAt: string;
@@ -134,7 +134,7 @@ export type Booking = {
 export type CreateBookingPayload = {
   petId: string;
   locationId: string;
-  service: "Bathing" | "Cutting" | "Hygiene";
+  service: "Bathing" | "Cutting" | "Hygiene" | "Blow Dry" | "Nail Trim" | "Spa" | "Cleaning";
   type: "Instant" | "Scheduled";
   scheduledAt?: string;
 };

@@ -8,7 +8,15 @@ const createBookingSchema = z
   .object({
     petId: z.uuid(),
     locationId: z.uuid(),
-    service: z.enum(["Bathing", "Cutting", "Hygiene"]),
+    service: z.enum([
+      "Bathing",
+      "Cutting",
+      "Hygiene",
+      "BlowDry",
+      "NailTrim",
+      "Spa",
+      "Cleaning",
+    ]),
     type: z.enum(["Instant", "Scheduled"]),
     scheduledAt: z.coerce.date().optional(),
   })

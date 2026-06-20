@@ -64,8 +64,8 @@ model Location {
 
   userId String
   user User @relation(fields: [userId], references: [id])
-  
-  label String 
+
+  label String
 
   placeId String
   address String
@@ -110,6 +110,10 @@ enum Service {
   Bathing
   Cutting
   Hygiene
+  BlowDry
+  NailTrim
+  Spa
+  Cleaning
 }
 
 enum BookingType {

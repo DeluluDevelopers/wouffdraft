@@ -9,12 +9,12 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
-  FlatList,
+  ScrollView,
   Platform,
   ActivityIndicator,
-  ScrollView,
   KeyboardAvoidingView,
   PanResponder,
+  TextInput,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,12 +30,32 @@ import {
 import Colors from "@/constants/Colors";
 
 const SERVICES = [
-  { key: "Bathing", image: require("@/assets/images/bathing.jpeg"), label: "Bathing" },
-  { key: "Cutting", image: require("@/assets/images/cutting.jpeg"), label: "Cutting" },
-  { key: "Hygiene", image: require("@/assets/images/gromming.jpeg"), label: "Hygiene" },
+  { key: "Bathing", icon: "water", label: "Bathing", duration: "30-45 min", price: "₹499" },
+  { key: "Cutting", icon: "cut", label: "Hair Cutting", duration: "45-60 min", price: "₹599" },
+  { key: "BlowDry", icon: "cloudy", label: "Blow Dry", duration: "20-30 min", price: "₹199" },
+  { key: "NailTrim", icon: "cut", label: "Nail Trimming", duration: "15-20 min", price: "₹149" },
+  { key: "Spa", icon: "leaf", label: "Spa Treatment", duration: "60-90 min", price: "₹999" },
+  { key: "Cleaning", icon: "sparkles", label: "Cleaning", duration: "45-60 min", price: "₹599" },
 ] as const;
 
-type Service = (typeof SERVICES)[number]["key"];
+const PACKAGES = [
+  {
+    id: "1",
+    name: "Grooming Package",
+    services: ["Bathing", "Hair Cutting", "BlowDry"],
+    price: "₹1,299",
+    discount: "20% OFF",
+  },
+  {
+    id: "2",
+    name: "Premium Spa",
+    services: ["Spa Treatment", "NailTrim", "Cleaning"],
+    price: "₹1,799",
+    discount: "15% OFF",
+  },
+] as const;
+
+type Service = "Bathing" | "Cutting" | "Hygiene" | "Blow Dry" | "Nail Trim" | "Spa" | "Cleaning";
 type BookingType = "Instant" | "Scheduled";
 
 export default function HomeScreen() {
@@ -53,6 +73,7 @@ export default function HomeScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const slideAnim = React.useRef(new Animated.Value(0)).current;
   const backdropAnim = React.useRef(new Animated.Value(0)).current;
   const panResponder = React.useRef(
@@ -184,44 +205,87 @@ export default function HomeScreen() {
 
   const canConfirm = selectedPetId && selectedLocationId;
 
+  const filteredServices = SERVICES.filter(svc =>
+    svc.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Screen>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>
-            {profile?.name ? `Hello, ${profile.name}` : "Welcome back"}
-          </Text>
-          <Text style={styles.subtitle}>What would you like to do?</Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.container}
+        contentContainerStyle={styles.containerContent}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>
+              {profile?.name ? `Hello, ${profile.name}` : "Welcome back"}
+            </Text>
+            <Text style={styles.subtitle}>What would you like to do?</Text>
+          </View>
         </View>
-        <Pressable onPress={onLogout} style={styles.logoutBtn}>
-          <Ionicons name="log-out" size={22} color={Colors.light.onSurfaceVariant} />
-        </Pressable>
-      </View>
-      <View style={styles.bannerContainer}>
-        <Image
-          source={require("@/assets/images/bannerImage.png")}
-          style={styles.bannerImage}
-          resizeMode="cover"
-        />
-      </View>
 
-      <View style={styles.servicesGrid}>
-        {SERVICES.map((svc) => (
-          <Pressable
-            key={svc.key}
-            style={styles.serviceCard}
-            onPress={() => openServiceModal(svc.key)}
-          >
-            <Image
-              source={svc.image}
-              style={styles.serviceImage}
-              resizeMode="cover"
-            />
-            <Text style={styles.serviceLabel}>{svc.label}</Text>
-          </Pressable>
-        ))}
-      </View>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color={Colors.light.onSurfaceVariant} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search services..."
+            placeholderTextColor={Colors.light.onSurfaceVariant}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
 
+        {/* Our Services */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Our Services</Text>
+          <View style={styles.servicesGrid}>
+            {filteredServices.map((svc) => (
+              <Pressable
+                key={svc.key}
+                style={styles.serviceCard}
+                onPress={() => openServiceModal(svc.key)}
+              >
+                <View style={styles.serviceIconContainer}>
+                  <Ionicons name={svc.icon as any} size={28} color={Colors.light.primary} />
+                </View>
+                <Text style={styles.serviceName}>{svc.label}</Text>
+                <Text style={styles.serviceDuration}>{svc.duration}</Text>
+                <Text style={styles.servicePrice}>{svc.price}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* Popular Packages */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Popular Packages</Text>
+          <View style={styles.packagesContainer}>
+            {PACKAGES.map((pkg) => (
+              <Pressable
+                key={pkg.id}
+                style={styles.packageCard}
+                onPress={() => Alert.alert(pkg.name, pkg.services.join(", "))}
+              >
+                <View style={styles.packageContent}>
+                  <Text style={styles.packageName}>{pkg.name}</Text>
+                  <Text style={styles.packageServices}>
+                    {pkg.services.join(" • ")}
+                  </Text>
+                  <View style={styles.packagePriceRow}>
+                    <Text style={styles.packagePrice}>{pkg.price}</Text>
+                    <Text style={styles.packageDiscount}>{pkg.discount}</Text>
+                  </View>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Booking Modal */}
       <Modal
         visible={modalVisible}
         transparent
@@ -436,11 +500,15 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  containerContent: {
+    paddingBottom: 20,
+  },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 28,
+    marginBottom: 12,
+    marginTop: 0,
   },
   greeting: {
     color: Colors.light.onSurface,
@@ -454,54 +522,145 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "400",
   },
-  logoutBtn: {
-    padding: 8,
-  },
-  servicesGrid: {
-    flexDirection: "column",
-    gap: 16,
-    marginTop: 4,
-  },
-  bannerContainer: {
-    marginBottom: 28,
-    borderRadius: 20,
-    overflow: "hidden",
-    shadowColor: "#0c5252",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  bannerImage: {
-    width: "100%",
-    height: 140,
-  },
-  serviceCard: {
-    width: "100%",
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.light.surfaceContainerLow,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 16,
+    gap: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.light.onSurface,
+  },
+  filterContainer: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 20,
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 20,
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderWidth: 1,
     borderColor: Colors.light.outlineVariant,
-    padding: 24,
-    alignItems: "center",
-    gap: 16,
-    shadowColor: "#0c5252",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
   },
-  serviceImage: {
-    width: 120,
-    height: 120,
+  filterChipActive: {
+    backgroundColor: Colors.light.primaryContainer,
+    borderColor: Colors.light.primary,
+  },
+  filterText: {
+    color: Colors.light.onSurfaceVariant,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  filterTextActive: {
+    color: Colors.light.onPrimary,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    color: Colors.light.onSurface,
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 16,
+    letterSpacing: -0.01,
+  },
+  servicesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  serviceCard: {
+    width: "48%",
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderRadius: 16,
-    resizeMode: "cover",
+    borderWidth: 1,
+    borderColor: Colors.light.outlineVariant,
+    padding: 16,
+    alignItems: "center",
+    gap: 8,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  serviceLabel: {
+  serviceIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.light.primaryContainer,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  serviceName: {
     color: Colors.light.onSurface,
     fontSize: 14,
     fontWeight: "600",
     textAlign: "center",
+  },
+  serviceDuration: {
+    color: Colors.light.onSurfaceVariant,
+    fontSize: 12,
+  },
+  servicePrice: {
+    color: Colors.light.primary,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  packagesContainer: {
+    gap: 16,
+  },
+  packageCard: {
+    flexDirection: "row",
+    backgroundColor: Colors.light.surfaceContainerLow,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.light.outlineVariant,
+    padding: 20,
+    alignItems: "center",
+    gap: 16,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  packageContent: {
+    flex: 1,
+    gap: 8,
+  },
+  packageName: {
+    color: Colors.light.onSurface,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  packageServices: {
+    color: Colors.light.onSurfaceVariant,
+    fontSize: 13,
+  },
+  packagePriceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 4,
+  },
+  packagePrice: {
+    color: Colors.light.primary,
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  packageDiscount: {
+    color: Colors.light.success,
+    fontSize: 13,
+    fontWeight: "600",
   },
   backdrop: {
     ...StyleSheet.absoluteFill,
