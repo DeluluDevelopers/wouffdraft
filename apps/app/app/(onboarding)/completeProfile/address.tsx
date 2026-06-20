@@ -13,6 +13,7 @@ import { TextField } from "@/ui/TextField";
 import { PrimaryButton } from "@/ui/PrimaryButton";
 import { useProfileWizard } from "@/wizard/ProfileWizard";
 import { searchAddress, type AddressPrediction } from "@/lib/api";
+import Colors from "@/constants/Colors";
 
 export default function AddressScreen() {
   const router = useRouter();
@@ -63,7 +64,7 @@ export default function AddressScreen() {
 
   return (
     <Screen>
-      <View style={styles.card}>
+      <View style={styles.container}>
         <Text style={styles.step}>Step 1 of 3</Text>
         <Text style={styles.title}>Your info</Text>
         <Text style={styles.subtitle}>
@@ -82,7 +83,7 @@ export default function AddressScreen() {
           <TextInput
             style={styles.input}
             placeholder="Search your address..."
-            placeholderTextColor="#777"
+            placeholderTextColor={Colors.light.onSurfaceVariant}
             value={query}
             onChangeText={onSearch}
           />
@@ -120,74 +121,74 @@ export default function AddressScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 22,
-    borderRadius: 24,
-    backgroundColor: "#111118",
-    borderWidth: 1,
-    borderColor: "#21212A",
+  container: {
+    gap: 24,
   },
   step: {
-    color: "#8B8B96",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 13,
     fontWeight: "600",
+    letterSpacing: 0.02,
     marginBottom: 4,
     textTransform: "uppercase",
   },
   title: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 30,
-    fontWeight: "800",
+    fontWeight: "700",
+    letterSpacing: -0.01,
     marginBottom: 8,
   },
   subtitle: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 20,
   },
   fieldWrap: {
-    marginBottom: 14,
+    marginBottom: 20,
   },
   label: {
-    color: "#D7D7DD",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 13,
+    fontWeight: "600",
     marginBottom: 8,
   },
   input: {
-    height: 54,
-    borderRadius: 16,
+    height: 56,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#24242B",
-    backgroundColor: "#121218",
-    color: "#FFF",
+    borderColor: Colors.light.outlineVariant,
+    backgroundColor: Colors.light.surfaceContainerLow,
+    color: Colors.light.onSurface,
     paddingHorizontal: 16,
     fontSize: 16,
+    paddingVertical: 16,
   },
   hint: {
-    color: "#777",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 12,
     marginTop: 6,
   },
   dropdown: {
     marginTop: 4,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#24242B",
-    backgroundColor: "#121218",
+    borderColor: Colors.light.outlineVariant,
+    backgroundColor: Colors.light.surfaceContainerLow,
     maxHeight: 200,
   },
   dropdownItem: {
     padding: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#24242B",
+    borderBottomColor: Colors.light.outlineVariant,
   },
   dropdownText: {
-    color: "#FFF",
+    color: Colors.light.onSurface,
     fontSize: 14,
   },
   selectedText: {
-    color: "#4ADE80",
+    color: Colors.light.primary,
     fontSize: 13,
     marginTop: 6,
   },

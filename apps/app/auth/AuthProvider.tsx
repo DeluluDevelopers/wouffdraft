@@ -72,6 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profileCompleted: profile.profileStatus === "PROFILE_COMPLETED",
       isAuthenticated: true,
     }));
+    console.log(profile);
     return profile;
   };
 

@@ -1,17 +1,18 @@
 import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Alert, Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import { Alert, Text, View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/auth/useAuth";
 import { Screen } from "@/ui/Screen";
-import { TextField } from "@/ui/TextField";
 import { PrimaryButton } from "@/ui/PrimaryButton";
+import Colors from "@/constants/Colors";
 
 export default function VerifyOtpScreen() {
   const router = useRouter();
   const { phone: routePhone } = useLocalSearchParams<{ phone: string }>();
   const { loginWithOtp, profileCompleted } = useAuth();
   const [otp, setOtp] = useState("");
+  const [error, setError] = useState("");
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -25,12 +26,14 @@ export default function VerifyOtpScreen() {
         router.replace("/(onboarding)/completeProfile/address");
       }
     },
-    onError: () => {
-      Alert.alert("Invalid OTP", "Please check the code and try again.");
+    onError: (err: any) => {
+      const message = err?.response?.data?.message || "Invalid OTP. Please check the code and try again.";
+      setError(message);
     },
   });
 
   const onVerify = () => {
+    setError("");
     if (!otp.trim()) {
       Alert.alert("OTP required", "Enter the OTP sent to your phone.");
       return;
@@ -40,18 +43,26 @@ export default function VerifyOtpScreen() {
 
   return (
     <Screen>
-      <View style={styles.card}>
+      <View style={styles.container}>
         <Text style={styles.title}>Verify OTP</Text>
         <Text style={styles.subtitle}>
           We sent a code to {routePhone || "your phone number"}.
         </Text>
 
-        <TextField
-          label="OTP"
+        {error ? (
+          <View style={styles.errorWrap}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+
+        <TextInput
+          style={styles.otpInput}
           placeholder="Enter OTP"
           keyboardType="number-pad"
           value={otp}
-          onChangeText={setOtp}
+          onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
+          maxLength={6}
+          autoFocus
         />
 
         <PrimaryButton
@@ -69,31 +80,53 @@ export default function VerifyOtpScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 22,
-    borderRadius: 24,
-    backgroundColor: "#111118",
-    borderWidth: 1,
-    borderColor: "#21212A",
+  container: {
+    gap: 24,
   },
   title: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 30,
-    fontWeight: "800",
+    fontWeight: "700",
+    letterSpacing: -0.01,
     marginBottom: 8,
   },
   subtitle: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 20,
+  },
+  errorWrap: {
+    backgroundColor: Colors.light.errorContainer,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.light.error,
+  },
+  errorText: {
+    color: Colors.light.onErrorContainer,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  otpInput: {
+    height: 56,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.light.outlineVariant,
+    backgroundColor: Colors.light.surfaceContainerLow,
+    color: Colors.light.onSurface,
+    fontSize: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    textAlign: "center",
+    letterSpacing: 4,
   },
   backWrap: {
     marginTop: 18,
     alignItems: "center",
   },
   backText: {
-    color: "#D7D7DD",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
   },
 });

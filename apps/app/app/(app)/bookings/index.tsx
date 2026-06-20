@@ -13,6 +13,7 @@ import { useAuth } from "@/auth/useAuth";
 import { Screen } from "@/ui/Screen";
 import { Ionicons } from "@expo/vector-icons";
 import { getBookings } from "@/lib/api";
+import Colors from "@/constants/Colors";
 
 const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Bathing: "water",
@@ -76,7 +77,7 @@ export default function BookingsScreen() {
                   styles.badge,
                   {
                     backgroundColor:
-                      item.type === "Instant" ? "#1A3A2A" : "#2A2A1A",
+                      item.type === "Instant" ? Colors.light.primaryContainer : Colors.light.surfaceContainer,
                   },
                 ]}
               >
@@ -85,7 +86,7 @@ export default function BookingsScreen() {
                     styles.badgeText,
                     {
                       color:
-                        item.type === "Instant" ? "#4ADE80" : "#EAB308",
+                        item.type === "Instant" ? Colors.light.onPrimary : Colors.light.warning,
                     },
                   ]}
                 >
@@ -102,13 +103,14 @@ export default function BookingsScreen() {
 
 const styles = StyleSheet.create({
   title: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 28,
-    fontWeight: "800",
+    fontWeight: "700",
+    letterSpacing: -0.01,
     marginBottom: 20,
   },
   empty: {
-    color: "#777",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 15,
     textAlign: "center",
     marginTop: 40,
@@ -117,12 +119,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#111118",
-    borderRadius: 18,
+    backgroundColor: Colors.light.surfaceContainerLow,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#21212A",
+    borderColor: Colors.light.outlineVariant,
     padding: 16,
     marginBottom: 12,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardLeft: {
     flexDirection: "row",
@@ -135,7 +142,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#1A1A24",
+    backgroundColor: Colors.light.primaryContainer,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -145,16 +152,16 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   serviceName: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 16,
     fontWeight: "600",
   },
   petName: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 13,
   },
   date: {
-    color: "#666",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 12,
     marginTop: 2,
   },

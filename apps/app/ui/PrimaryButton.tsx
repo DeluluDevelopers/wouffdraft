@@ -1,5 +1,6 @@
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
+import Colors from "@/constants/Colors";
 
 type Props = {
   title: string;
@@ -16,11 +17,11 @@ export function PrimaryButton({ title, onPress, loading, disabled }: Props) {
       style={({ pressed }) => [
         styles.button,
         (disabled || loading) && styles.disabled,
-        pressed && !disabled && !loading && { opacity: 0.9 },
+        pressed && !disabled && !loading && styles.pressed,
       ]}
     >
       {loading ? (
-        <ActivityIndicator />
+        <ActivityIndicator color={Colors.light.onPrimary} />
       ) : (
         <Text style={styles.text}>{title}</Text>
       )}
@@ -31,17 +32,27 @@ export function PrimaryButton({ title, onPress, loading, disabled }: Props) {
 const styles = StyleSheet.create({
   button: {
     height: 54,
-    borderRadius: 16,
-    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    backgroundColor: Colors.light.primary,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
+    marginTop: 24,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   disabled: {
     opacity: 0.5,
+    backgroundColor: Colors.light.surfaceContainer,
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
   },
   text: {
-    color: "#0B0B0F",
+    color: Colors.light.onPrimary,
     fontSize: 16,
     fontWeight: "700",
   },

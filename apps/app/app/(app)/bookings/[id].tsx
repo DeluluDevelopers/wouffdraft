@@ -11,6 +11,7 @@ import { useAuth } from "@/auth/useAuth";
 import { PrimaryButton } from "@/ui/PrimaryButton";
 import { Ionicons } from "@expo/vector-icons";
 import { getBooking, type Booking } from "@/lib/api";
+import Colors from "@/constants/Colors";
 
 const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Bathing: "water",
@@ -76,7 +77,7 @@ export default function BookingDetailScreen() {
             styles.badge,
             {
               backgroundColor:
-                booking.type === "Instant" ? "#1A3A2A" : "#2A2A1A",
+                booking.type === "Instant" ? Colors.light.primaryContainer : Colors.light.surfaceContainer,
             },
           ]}
         >
@@ -84,7 +85,7 @@ export default function BookingDetailScreen() {
             style={[
               styles.badgeText,
               {
-                color: booking.type === "Instant" ? "#4ADE80" : "#EAB308",
+                color: booking.type === "Instant" ? Colors.light.onPrimary : Colors.light.warning,
               },
             ]}
           >
@@ -156,26 +157,26 @@ function DetailRow({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0B0B0F",
-    paddingHorizontal: 24,
+    backgroundColor: Colors.light.surface,
+    paddingHorizontal: 20,
     paddingTop: 60,
   },
   centered: {
     flex: 1,
-    backgroundColor: "#0B0B0F",
+    backgroundColor: Colors.light.surface,
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
   },
   errorText: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 16,
   },
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#111118",
+    backgroundColor: Colors.light.surfaceContainerLow,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 24,
@@ -189,15 +190,16 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: "#1A1A24",
+    backgroundColor: Colors.light.primaryContainer,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
   },
   serviceTitle: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 24,
-    fontWeight: "800",
+    fontWeight: "700",
+    letterSpacing: -0.01,
   },
   badge: {
     paddingHorizontal: 12,
@@ -209,12 +211,17 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   detailsCard: {
-    backgroundColor: "#111118",
-    borderRadius: 20,
+    backgroundColor: Colors.light.surfaceContainerLow,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#21212A",
+    borderColor: Colors.light.outlineVariant,
     padding: 20,
     gap: 16,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   row: {
     flexDirection: "row",
@@ -227,11 +234,11 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   rowLabel: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
   },
   rowValue: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 14,
     fontWeight: "600",
   },

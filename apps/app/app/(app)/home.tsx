@@ -12,6 +12,7 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
+  KeyboardAvoidingView,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useQueryClient } from "@tanstack/react-query";
@@ -24,6 +25,7 @@ import {
   type PetProfile,
   type LocationProfile,
 } from "@/lib/api";
+import Colors from "@/constants/Colors";
 
 const SERVICES = [
   { key: "Bathing", icon: "water", label: "Bathing" },
@@ -131,6 +133,28 @@ export default function HomeScreen() {
     }
   };
 
+  const keyboardAvoid = Platform.OS === 'ios' ? (
+    <KeyboardAvoidingView
+      behavior="padding"
+      keyboardVerticalOffset={100}
+      style={styles.keyboardAvoid}
+    >
+      <View style={styles.sheetContent}>
+        {/* Sheet content */}
+      </View>
+    </KeyboardAvoidingView>
+  ) : (
+    <KeyboardAvoidingView
+      behavior="height"
+      keyboardVerticalOffset={0}
+      style={styles.keyboardAvoid}
+    >
+      <View style={styles.sheetContent}>
+        {/* Sheet content */}
+      </View>
+    </KeyboardAvoidingView>
+  );
+
   const onLogout = async () => {
     await logout();
   };
@@ -157,7 +181,7 @@ export default function HomeScreen() {
           <Text style={styles.subtitle}>What would you like to do?</Text>
         </View>
         <Pressable onPress={onLogout} style={styles.logoutBtn}>
-          <Ionicons name="log-out" size={22} color="#A8A8B3" />
+          <Ionicons name="log-out" size={22} color={Colors.light.onSurfaceVariant} />
         </Pressable>
       </View>
 
@@ -190,11 +214,12 @@ export default function HomeScreen() {
         <Animated.View
           style={[styles.sheet, { transform: [{ translateY }] }]}
         >
+          {keyboardAvoid}
           <Pressable style={styles.sheetContent} onPress={() => {}}>
             <View style={styles.handleRow}>
               <View style={styles.handle} />
               <Pressable onPress={closeModal} style={styles.closeX}>
-                <Ionicons name="close" size={22} color="#888" />
+                <Ionicons name="close" size={22} color={Colors.light.onSurfaceVariant} />
               </Pressable>
             </View>
             <Text style={styles.sheetTitle}>
@@ -215,7 +240,7 @@ export default function HomeScreen() {
                   <Ionicons
                     name="flash"
                     size={18}
-                    color={bookingType === "Instant" ? "#4ADE80" : "#888"}
+                    color={bookingType === "Instant" ? Colors.light.success : Colors.light.onSurfaceVariant}
                   />
                   <Text
                     style={[
@@ -236,7 +261,7 @@ export default function HomeScreen() {
                   <Ionicons
                     name="calendar"
                     size={18}
-                    color={bookingType === "Scheduled" ? "#EAB308" : "#888"}
+                    color={bookingType === "Scheduled" ? Colors.light.warning : Colors.light.onSurfaceVariant}
                   />
                   <Text
                     style={[
@@ -256,7 +281,7 @@ export default function HomeScreen() {
                     style={styles.dateInput}
                     onPress={() => setShowDatePicker(true)}
                   >
-                    <Ionicons name="calendar-outline" size={20} color="#A8A8B3" />
+                    <Ionicons name="calendar-outline" size={20} color={Colors.light.onSurfaceVariant} />
                     <Text style={styles.dateInputText}>
                       {scheduledDate.toLocaleDateString("en-US", {
                         weekday: "short",
@@ -297,7 +322,7 @@ export default function HomeScreen() {
                     <Ionicons
                       name={item.species === "Dog" ? "paw" : "paw-outline"}
                       size={20}
-                      color={selectedPetId === item.id ? "#FFFFFF" : "#888"}
+                      color={selectedPetId === item.id ? Colors.light.onPrimary : Colors.light.onSurfaceVariant}
                     />
                     <View style={styles.selectText}>
                       <Text
@@ -313,7 +338,7 @@ export default function HomeScreen() {
                       </Text>
                     </View>
                     {selectedPetId === item.id && (
-                      <Ionicons name="checkmark-circle" size={20} color="#4ADE80" />
+                      <Ionicons name="checkmark-circle" size={20} color={Colors.light.success} />
                     )}
                   </Pressable>
                 ))
@@ -339,7 +364,7 @@ export default function HomeScreen() {
                     <Ionicons
                       name="location"
                       size={20}
-                      color={selectedLocationId === item.id ? "#FFFFFF" : "#888"}
+                      color={selectedLocationId === item.id ? Colors.light.onPrimary : Colors.light.onSurfaceVariant}
                     />
                     <View style={styles.selectText}>
                       <Text
@@ -356,7 +381,7 @@ export default function HomeScreen() {
                       </Text>
                     </View>
                     {selectedLocationId === item.id && (
-                      <Ionicons name="checkmark-circle" size={20} color="#4ADE80" />
+                      <Ionicons name="checkmark-circle" size={20} color={Colors.light.success} />
                     )}
                   </Pressable>
                 ))
@@ -368,7 +393,7 @@ export default function HomeScreen() {
                 disabled={!canConfirm || loading}
               >
                 {loading ? (
-                  <ActivityIndicator color="#0B0B0F" />
+                  <ActivityIndicator color={Colors.light.onPrimary} />
                 ) : (
                   <Text
                     style={[
@@ -396,14 +421,16 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   greeting: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 28,
     fontWeight: "800",
+    letterSpacing: -0.01,
     marginBottom: 4,
   },
   subtitle: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 15,
+    fontWeight: "400",
   },
   logoutBtn: {
     padding: 8,
@@ -414,26 +441,32 @@ const styles = StyleSheet.create({
   },
   serviceCard: {
     flex: 1,
-    backgroundColor: "#111118",
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#21212A",
+    borderColor: Colors.light.outlineVariant,
     padding: 20,
     alignItems: "center",
     gap: 12,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
   },
   iconWrap: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#1A1A24",
+    backgroundColor: Colors.light.primaryContainer,
     alignItems: "center",
     justifyContent: "center",
   },
   serviceLabel: {
-    color: "#FFFFFF",
-    fontSize: 13,
+    color: Colors.light.onSurface,
+    fontSize: 14,
     fontWeight: "600",
+    textAlign: "center",
   },
   backdrop: {
     ...StyleSheet.absoluteFill,
@@ -444,15 +477,24 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#111118",
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: Dimensions.get("window").height * 0.8,
+    maxHeight: Dimensions.get("window").height * 0.85,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  keyboardAvoid: {
+    flex: 1,
   },
   sheetContent: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingHorizontal: 20,
+    paddingTop: 16,
     paddingBottom: 40,
+    maxHeight: Dimensions.get("window").height * 0.65,
   },
   handleRow: {
     flexDirection: "row",
@@ -464,7 +506,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#333",
+    backgroundColor: Colors.light.outlineVariant,
   },
   closeX: {
     position: "absolute",
@@ -472,9 +514,10 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   sheetTitle: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 20,
     fontWeight: "700",
+    letterSpacing: -0.01,
     marginBottom: 20,
   },
   scrollArea: {
@@ -484,25 +527,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: "#1A1A24",
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#21212A",
+    borderColor: Colors.light.outlineVariant,
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginBottom: 20,
   },
   dateInputText: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 15,
   },
   sectionLabel: {
-    color: "#8B8B96",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 13,
     fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
     marginBottom: 8,
+    letterSpacing: 0.02,
   },
   bookingTypeRow: {
     flexDirection: "row",
@@ -517,27 +559,27 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: "#1A1A24",
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: "#21212A",
+    borderColor: Colors.light.outlineVariant,
   },
   bookingTypeChipActive: {
-    borderColor: "#4ADE80",
-    backgroundColor: "#1A2A1A",
+    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.primaryContainer,
   },
   bookingTypeText: {
-    color: "#888",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 15,
     fontWeight: "600",
   },
   bookingTypeTextActive: {
-    color: "#4ADE80",
+    color: Colors.light.onPrimary,
   },
   bookingTypeTextScheduledActive: {
-    color: "#EAB308",
+    color: Colors.light.warning,
   },
   emptyText: {
-    color: "#777",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
     paddingVertical: 12,
   },
@@ -549,48 +591,54 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 14,
     marginBottom: 6,
-    backgroundColor: "#16161D",
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: "#21212A",
+    borderColor: Colors.light.outlineVariant,
   },
   selectRowActive: {
-    borderColor: "#4ADE80",
-    backgroundColor: "#1A2A1A",
+    borderColor: Colors.light.primary,
+    backgroundColor: Colors.light.primaryContainer,
   },
   selectText: {
     flex: 1,
     gap: 2,
   },
   selectLabel: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 15,
     fontWeight: "600",
   },
   selectLabelActive: {
-    color: "#FFFFFF",
+    color: Colors.light.onPrimary,
   },
   selectDetail: {
-    color: "#666",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 12,
   },
   confirmBtn: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.primary,
     height: 54,
-    borderRadius: 16,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20,
+    marginTop: 24,
     marginBottom: 8,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   confirmBtnDisabled: {
-    backgroundColor: "#24242B",
+    backgroundColor: Colors.light.surfaceContainer,
+    opacity: 0.5,
   },
   confirmText: {
-    color: "#0B0B0F",
+    color: Colors.light.onPrimary,
     fontSize: 16,
     fontWeight: "700",
   },
   confirmTextDisabled: {
-    color: "#555",
+    color: Colors.light.onSurfaceVariant,
   },
 });

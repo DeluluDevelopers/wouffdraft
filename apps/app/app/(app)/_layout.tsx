@@ -2,6 +2,7 @@ import { Redirect, Tabs } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/auth/useAuth";
+import Colors from "@/constants/Colors";
 
 export default function AppLayout() {
   const { isHydrating, isAuthenticated, profileCompleted } = useAuth();
@@ -13,10 +14,10 @@ export default function AppLayout() {
           flex: 1,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#0B0B0F",
+          backgroundColor: Colors.light.surface,
         }}
       >
-        <ActivityIndicator />
+        <ActivityIndicator color={Colors.light.primary} />
       </View>
     );
   }
@@ -29,15 +30,20 @@ export default function AppLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: "#0B0B0F",
-          borderTopColor: "#21212A",
+          backgroundColor: Colors.light.surfaceContainerLow,
+          borderTopColor: Colors.light.outlineVariant,
           borderTopWidth: 1,
-          height: 64,
-          paddingBottom: 10,
+          height: 70,
+          paddingBottom: 12,
           paddingTop: 8,
+          shadowColor: "#0c5252",
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
+          elevation: 8,
         },
-        tabBarActiveTintColor: "#FFFFFF",
-        tabBarInactiveTintColor: "#555",
+        tabBarActiveTintColor: Colors.light.primary,
+        tabBarInactiveTintColor: Colors.light.onSurfaceVariant,
         tabBarShowLabel: false,
       }}
     >

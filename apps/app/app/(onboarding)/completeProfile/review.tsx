@@ -6,6 +6,7 @@ import { Screen } from "@/ui/Screen";
 import { PrimaryButton } from "@/ui/PrimaryButton";
 import { useAuth } from "@/auth/useAuth";
 import { useProfileWizard } from "@/wizard/ProfileWizard";
+import Colors from "@/constants/Colors";
 
 export default function ReviewScreen() {
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function ReviewScreen() {
   return (
     <Screen>
       <ScrollView>
-        <View style={styles.card}>
+        <View style={styles.container}>
           <Text style={styles.step}>Step 3 of 3</Text>
           <Text style={styles.title}>Review</Text>
           <Text style={styles.subtitle}>
@@ -122,29 +123,26 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 22,
-    borderRadius: 24,
-    backgroundColor: "#111118",
-    borderWidth: 1,
-    borderColor: "#21212A",
-    marginVertical: 12,
+  container: {
+    gap: 24,
   },
   step: {
-    color: "#8B8B96",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 13,
     fontWeight: "600",
+    letterSpacing: 0.02,
     marginBottom: 4,
     textTransform: "uppercase",
   },
   title: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 30,
-    fontWeight: "800",
+    fontWeight: "700",
+    letterSpacing: -0.01,
     marginBottom: 8,
   },
   subtitle: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 20,
@@ -153,9 +151,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionTitle: {
-    color: "#8B8B96",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 12,
     fontWeight: "600",
+    letterSpacing: 0.02,
     textTransform: "uppercase",
     marginBottom: 10,
   },
@@ -164,31 +163,36 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#1E1E26",
+    borderBottomColor: Colors.light.outlineVariant,
   },
   rowLabel: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
   },
   rowValue: {
-    color: "#FFF",
+    color: Colors.light.onSurface,
     fontSize: 14,
     fontWeight: "600",
   },
   petSummary: {
     padding: 12,
     borderRadius: 14,
-    backgroundColor: "#16161D",
+    backgroundColor: Colors.light.surfaceContainerLow,
     marginBottom: 8,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   petName: {
-    color: "#FFF",
+    color: Colors.light.onSurface,
     fontSize: 16,
     fontWeight: "700",
     marginBottom: 4,
   },
   petDetail: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 13,
     lineHeight: 18,
   },
@@ -197,7 +201,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   backText: {
-    color: "#D7D7DD",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
   },
 });

@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { Alert, Text, View, StyleSheet } from "react-native";
+import { Alert, Text, View, StyleSheet, TextInput } from "react-native";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/auth/useAuth";
 import { sendOtp } from "@/lib/api";
 import { Screen } from "@/ui/Screen";
-import { TextField } from "@/ui/TextField";
 import { PrimaryButton } from "@/ui/PrimaryButton";
+import Colors from "@/constants/Colors";
 
 export default function LoginScreen() {
   const router = useRouter();
   const { setPhone } = useAuth();
   const [phone, setPhoneLocal] = useState("");
-  console.log("LoginScreen rendered with phone:", phone);
+  const [countryCode, setCountryCode] = useState("91");
 
   const mutation = useMutation({
     mutationFn: sendOtp,
@@ -20,14 +20,15 @@ export default function LoginScreen() {
       setPhone(phone);
       router.push({
         pathname: "/(auth)/verifyOtp",
-        params: { phone },
+        params: { phone: countryCode + phone },
       });
     },
     onError: (err) => {
       console.error("sendOtp failed:", err);
       const data = (err as any)?.response?.data;
       const message =
-        data?.message || (err instanceof Error ? err.message : "Could not send OTP.");
+        data?.message ||
+        (err instanceof Error ? err.message : "Could not send OTP.");
       Alert.alert("Error", message);
     },
   });
@@ -37,24 +38,33 @@ export default function LoginScreen() {
       Alert.alert("Phone required", "Enter your phone number.");
       return;
     }
-    mutation.mutate({ phoneNumber: phone.trim() });
+    mutation.mutate({ phoneNumber: countryCode + phone.trim() });
   };
 
   return (
     <Screen>
-      <View >
+      <View style={styles.container}>
         <Text style={styles.title}>Welcome</Text>
         <Text style={styles.subtitle}>
           Enter your phone number to receive a one-time password.
         </Text>
 
-        <TextField
-          label="Phone number"
-          placeholder="+977 98XXXXXXXX"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhoneLocal}
-        />
+        <View style={styles.phoneInputWrap}>
+          <TextInput
+            style={styles.countryCodeInput}
+            value={countryCode}
+            editable={false}
+            keyboardType="phone-pad"
+          />
+          <TextInput
+            style={styles.phoneInput}
+            placeholder="XXXXXXXXXX"
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={(text) => setPhoneLocal(text.replace(/[^0-9]/g, ""))}
+            maxLength={10}
+          />
+        </View>
 
         <PrimaryButton
           title="Send OTP"
@@ -67,23 +77,49 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 22,
-    borderRadius: 24,
-    backgroundColor: "#111118",
-    borderWidth: 1,
-    borderColor: "#21212A",
+  container: {
+    gap: 24,
   },
   title: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 30,
-    fontWeight: "800",
+    fontWeight: "700",
+    letterSpacing: -0.01,
     marginBottom: 8,
   },
   subtitle: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 20,
+  },
+  phoneInputWrap: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  countryCodeInput: {
+    width: 80,
+    height: 56,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.light.outlineVariant,
+    backgroundColor: Colors.light.surfaceContainerLow,
+    color: Colors.light.onSurface,
+    fontSize: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontWeight: "600",
+  },
+  phoneInput: {
+    flex: 1,
+    height: 56,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.light.outlineVariant,
+    backgroundColor: Colors.light.surfaceContainerLow,
+    color: Colors.light.onSurface,
+    fontSize: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
 });

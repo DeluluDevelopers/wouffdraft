@@ -12,6 +12,7 @@ import {
 import { Screen } from "@/ui/Screen";
 import { PrimaryButton } from "@/ui/PrimaryButton";
 import { useProfileWizard, type PetForm } from "@/wizard/ProfileWizard";
+import Colors from "@/constants/Colors";
 
 const SPECIES = ["Dog", "Cat"] as const;
 const GENDERS = ["Male", "Female"] as const;
@@ -77,7 +78,7 @@ function PetCard({
       <TextInput
         style={styles.input}
         placeholder="Pet name"
-        placeholderTextColor="#777"
+        placeholderTextColor={Colors.light.onSurfaceVariant}
         value={pet.name}
         onChangeText={(v) => update({ name: v })}
       />
@@ -93,7 +94,7 @@ function PetCard({
       <TextInput
         style={styles.input}
         placeholder="e.g. Golden Retriever"
-        placeholderTextColor="#777"
+        placeholderTextColor={Colors.light.onSurfaceVariant}
         value={pet.breed}
         onChangeText={(v) => update({ breed: v })}
       />
@@ -102,7 +103,7 @@ function PetCard({
       <TextInput
         style={styles.input}
         placeholder="e.g. 12"
-        placeholderTextColor="#777"
+        placeholderTextColor={Colors.light.onSurfaceVariant}
         keyboardType="number-pad"
         value={pet.ageMonths}
         onChangeText={(v) => update({ ageMonths: v })}
@@ -148,7 +149,7 @@ function PetCard({
           <TextInput
             style={[styles.input, styles.multiline]}
             placeholder="Describe any conditions..."
-            placeholderTextColor="#777"
+            placeholderTextColor={Colors.light.onSurfaceVariant}
             multiline
             value={pet.medicalHistory}
             onChangeText={(v) => update({ medicalHistory: v })}
@@ -184,7 +185,7 @@ export default function PetsScreen() {
   return (
     <Screen>
       <ScrollView>
-        <View style={styles.card}>
+        <View style={styles.container}>
           <Text style={styles.step}>Step 2 of 3</Text>
           <Text style={styles.title}>Your pets</Text>
           <Text style={styles.subtitle}>
@@ -226,40 +227,42 @@ export default function PetsScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 22,
-    borderRadius: 24,
-    backgroundColor: "#111118",
-    borderWidth: 1,
-    borderColor: "#21212A",
-    marginVertical: 12,
+  container: {
+    gap: 24,
   },
   step: {
-    color: "#8B8B96",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 13,
     fontWeight: "600",
+    letterSpacing: 0.02,
     marginBottom: 4,
     textTransform: "uppercase",
   },
   title: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 30,
-    fontWeight: "800",
+    fontWeight: "700",
+    letterSpacing: -0.01,
     marginBottom: 8,
   },
   subtitle: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 20,
   },
   petCard: {
     padding: 16,
-    borderRadius: 18,
-    backgroundColor: "#16161D",
+    borderRadius: 16,
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: "#24242B",
+    borderColor: Colors.light.outlineVariant,
     marginBottom: 16,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   petHeader: {
     flexDirection: "row",
@@ -268,29 +271,30 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   petTitle: {
-    color: "#FFF",
+    color: Colors.light.onSurface,
     fontSize: 17,
     fontWeight: "700",
   },
   removeText: {
-    color: "#EF4444",
+    color: Colors.light.error,
     fontSize: 14,
   },
   fieldLabel: {
-    color: "#D7D7DD",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 13,
     marginBottom: 8,
     marginTop: 8,
   },
   input: {
-    height: 54,
-    borderRadius: 16,
+    height: 56,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#24242B",
-    backgroundColor: "#121218",
-    color: "#FFF",
+    borderColor: Colors.light.outlineVariant,
+    backgroundColor: Colors.light.surfaceContainerLow,
+    color: Colors.light.onSurface,
     paddingHorizontal: 16,
     fontSize: 16,
+    paddingVertical: 16,
   },
   multiline: {
     height: 80,
@@ -298,9 +302,9 @@ const styles = StyleSheet.create({
   },
   segRow: {
     flexDirection: "row",
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#24242B",
+    borderColor: Colors.light.outlineVariant,
     overflow: "hidden",
   },
   segOption: {
@@ -308,18 +312,18 @@ const styles = StyleSheet.create({
     height: 48,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#121218",
+    backgroundColor: Colors.light.surfaceContainerLow,
   },
   segActive: {
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.light.primaryContainer,
   },
   segText: {
-    color: "#777",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
     fontWeight: "600",
   },
   segTextActive: {
-    color: "#0B0B0F",
+    color: Colors.light.onPrimary,
   },
   toggleRow: {
     flexDirection: "row",
@@ -331,36 +335,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "#121218",
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: "#24242B",
+    borderColor: Colors.light.outlineVariant,
     alignItems: "center",
     justifyContent: "center",
   },
   toggleActive: {
-    backgroundColor: "#FFF",
-    borderColor: "#FFF",
+    backgroundColor: Colors.light.primaryContainer,
+    borderColor: Colors.light.primary,
   },
   toggleText: {
-    color: "#777",
+    color: Colors.light.onSurfaceVariant,
     fontWeight: "600",
     fontSize: 14,
   },
   toggleTextActive: {
-    color: "#0B0B0F",
+    color: Colors.light.onPrimary,
   },
   addBtn: {
     height: 54,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#24242B",
+    borderColor: Colors.light.outlineVariant,
     borderStyle: "dashed",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
   },
   addBtnText: {
-    color: "#A8A8B3",
+    color: Colors.light.primary,
     fontSize: 15,
     fontWeight: "600",
   },
@@ -369,7 +373,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   backText: {
-    color: "#D7D7DD",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 14,
   },
 });

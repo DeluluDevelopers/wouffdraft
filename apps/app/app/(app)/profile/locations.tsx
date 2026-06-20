@@ -12,6 +12,8 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/auth/useAuth";
@@ -24,6 +26,7 @@ import {
   type LocationProfile,
   type AddressPrediction,
 } from "@/lib/api";
+import Colors from "@/constants/Colors";
 
 export default function LocationsScreen() {
   const { accessToken } = useAuth();
@@ -208,87 +211,183 @@ export default function LocationsScreen() {
           </Pressable>
         </View>
         <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
-          <View style={styles.sheetContent}>
-            <View style={styles.handleRow}>
-              <View style={styles.handle} />
-              <Pressable onPress={closeModal} style={styles.closeX}>
-                <Ionicons name="close" size={22} color="#888" />
-              </Pressable>
-            </View>
-            <Text style={styles.sheetTitle}>Add Location</Text>
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              style={styles.scrollArea}
+          {Platform.OS === 'ios' ? (
+            <KeyboardAvoidingView
+              behavior="padding"
+              keyboardVerticalOffset={100}
+              style={styles.keyboardAvoid}
             >
-              <Text style={styles.fieldLabel}>Search address</Text>
-              <TextInput
-                style={styles.input}
-                value={query}
-                onChangeText={(t) => {
-                  setQuery(t);
-                  setSelectedPlaceId(null);
-                  setSelectedAddress("");
-                }}
-                placeholder="Type your address..."
-                placeholderTextColor="#555"
-                autoFocus
-              />
-              {searching && (
-                <ActivityIndicator
-                  color="#4ADE80"
-                  style={{ marginBottom: 8 }}
-                />
-              )}
-              {predictions.length > 0 && (
-                <View style={styles.predictions}>
-                  {predictions.map((p) => (
-                    <Pressable
-                      key={p.placeId}
-                      style={styles.predictionRow}
-                      onPress={() => selectPrediction(p)}
-                    >
-                      <Ionicons
-                        name="location-outline"
-                        size={18}
-                        color="#888"
-                      />
-                      <Text style={styles.predictionText}>{p.description}</Text>
-                    </Pressable>
-                  ))}
+              <View style={styles.sheetContent}>
+                <View style={styles.handleRow}>
+                  <View style={styles.handle} />
+                  <Pressable onPress={closeModal} style={styles.closeX}>
+                    <Ionicons name="close" size={22} color={Colors.light.onSurfaceVariant} />
+                  </Pressable>
                 </View>
-              )}
+                <Text style={styles.sheetTitle}>Add Location</Text>
 
-              {selectedAddress ? (
-                <>
-                  <Text style={styles.fieldLabel}>Label</Text>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  style={styles.scrollArea}
+                >
+                  <Text style={styles.fieldLabel}>Search address</Text>
                   <TextInput
                     style={styles.input}
-                    value={label}
-                    onChangeText={setLabel}
-                    placeholder="e.g. Home, Office"
-                    placeholderTextColor="#555"
+                    value={query}
+                    onChangeText={(t) => {
+                      setQuery(t);
+                      setSelectedPlaceId(null);
+                      setSelectedAddress("");
+                    }}
+                    placeholder="Type your address..."
+                    placeholderTextColor={Colors.light.onSurfaceVariant}
+                    autoFocus
                   />
-                  <Text style={styles.selectedAddress}>{selectedAddress}</Text>
-                </>
-              ) : null}
+                  {searching && (
+                    <ActivityIndicator
+                      color={Colors.light.primary}
+                      style={{ marginBottom: 8 }}
+                    />
+                  )}
+                  {predictions.length > 0 && (
+                    <View style={styles.predictions}>
+                      {predictions.map((p) => (
+                        <Pressable
+                          key={p.placeId}
+                          style={styles.predictionRow}
+                          onPress={() => selectPrediction(p)}
+                        >
+                          <Ionicons
+                            name="location-outline"
+                            size={18}
+                            color={Colors.light.onSurfaceVariant}
+                          />
+                          <Text style={styles.predictionText}>{p.description}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
 
-              <Pressable
-                style={[
-                  styles.saveBtn,
-                  (!canSave || saving) && styles.saveBtnDisabled,
-                ]}
-                onPress={saveLocation}
-                disabled={!canSave || saving}
-              >
-                {saving ? (
-                  <ActivityIndicator color="#0B0B0F" />
-                ) : (
-                  <Text style={styles.saveBtnText}>Save Location</Text>
-                )}
-              </Pressable>
-            </ScrollView>
-          </View>
+                  {selectedAddress ? (
+                    <>
+                      <Text style={styles.fieldLabel}>Label</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={label}
+                        onChangeText={setLabel}
+                        placeholder="e.g. Home, Office"
+                        placeholderTextColor={Colors.light.onSurfaceVariant}
+                      />
+                      <Text style={styles.selectedAddress}>{selectedAddress}</Text>
+                    </>
+                  ) : null}
+
+                  <Pressable
+                    style={[
+                      styles.saveBtn,
+                      (!canSave || saving) && styles.saveBtnDisabled,
+                    ]}
+                    onPress={saveLocation}
+                    disabled={!canSave || saving}
+                  >
+                    {saving ? (
+                      <ActivityIndicator color={Colors.light.onPrimary} />
+                    ) : (
+                      <Text style={styles.saveBtnText}>Save Location</Text>
+                    )}
+                  </Pressable>
+                </ScrollView>
+              </View>
+            </KeyboardAvoidingView>
+          ) : (
+            <KeyboardAvoidingView
+              behavior="height"
+              keyboardVerticalOffset={0}
+              style={styles.keyboardAvoid}
+            >
+              <View style={styles.sheetContent}>
+                <View style={styles.handleRow}>
+                  <View style={styles.handle} />
+                  <Pressable onPress={closeModal} style={styles.closeX}>
+                    <Ionicons name="close" size={22} color={Colors.light.onSurfaceVariant} />
+                  </Pressable>
+                </View>
+                <Text style={styles.sheetTitle}>Add Location</Text>
+
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  style={styles.scrollArea}
+                >
+                  <Text style={styles.fieldLabel}>Search address</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={query}
+                    onChangeText={(t) => {
+                      setQuery(t);
+                      setSelectedPlaceId(null);
+                      setSelectedAddress("");
+                    }}
+                    placeholder="Type your address..."
+                    placeholderTextColor={Colors.light.onSurfaceVariant}
+                    autoFocus
+                  />
+                  {searching && (
+                    <ActivityIndicator
+                      color={Colors.light.primary}
+                      style={{ marginBottom: 8 }}
+                    />
+                  )}
+                  {predictions.length > 0 && (
+                    <View style={styles.predictions}>
+                      {predictions.map((p) => (
+                        <Pressable
+                          key={p.placeId}
+                          style={styles.predictionRow}
+                          onPress={() => selectPrediction(p)}
+                        >
+                          <Ionicons
+                            name="location-outline"
+                            size={18}
+                            color={Colors.light.onSurfaceVariant}
+                          />
+                          <Text style={styles.predictionText}>{p.description}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
+
+                  {selectedAddress ? (
+                    <>
+                      <Text style={styles.fieldLabel}>Label</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={label}
+                        onChangeText={setLabel}
+                        placeholder="e.g. Home, Office"
+                        placeholderTextColor={Colors.light.onSurfaceVariant}
+                      />
+                      <Text style={styles.selectedAddress}>{selectedAddress}</Text>
+                    </>
+                  ) : null}
+
+                  <Pressable
+                    style={[
+                      styles.saveBtn,
+                      (!canSave || saving) && styles.saveBtnDisabled,
+                    ]}
+                    onPress={saveLocation}
+                    disabled={!canSave || saving}
+                  >
+                    {saving ? (
+                      <ActivityIndicator color={Colors.light.onPrimary} />
+                    ) : (
+                      <Text style={styles.saveBtnText}>Save Location</Text>
+                    )}
+                  </Pressable>
+                </ScrollView>
+              </View>
+            </KeyboardAvoidingView>
+          )}
         </Animated.View>
       </Modal>
     </Screen>
@@ -306,9 +405,10 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   title: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 22,
     fontWeight: "700",
+    letterSpacing: -0.01,
   },
   addBtn: {
     padding: 6,
@@ -317,12 +417,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#111118",
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#21212A",
+    borderColor: Colors.light.outlineVariant,
     padding: 14,
     marginBottom: 10,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardLeft: {
     flexDirection: "row",
@@ -334,17 +439,17 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "#1A2A1A",
+    backgroundColor: Colors.light.primaryContainer,
     alignItems: "center",
     justifyContent: "center",
   },
   label: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 16,
     fontWeight: "600",
   },
   address: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 13,
     marginTop: 2,
   },
@@ -354,20 +459,20 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyText: {
-    color: "#666",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 15,
   },
   emptyBtn: {
     marginTop: 8,
-    backgroundColor: "#1A1A24",
+    backgroundColor: Colors.light.surfaceContainerLow,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#21212A",
+    borderColor: Colors.light.outlineVariant,
   },
   emptyBtnText: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 15,
     fontWeight: "600",
   },
@@ -380,15 +485,24 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#111118",
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: Dimensions.get("window").height * 0.75,
+    maxHeight: Dimensions.get("window").height * 0.85,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  keyboardAvoid: {
+    flex: 1,
   },
   sheetContent: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingHorizontal: 20,
+    paddingTop: 16,
     paddingBottom: 40,
+    maxHeight: Dimensions.get("window").height * 0.65,
   },
   handleRow: {
     flexDirection: "row",
@@ -400,7 +514,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#333",
+    backgroundColor: Colors.light.outlineVariant,
   },
   closeX: {
     position: "absolute",
@@ -408,36 +522,37 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   sheetTitle: {
-    color: "#FFFFFF",
+    color: Colors.light.onSurface,
     fontSize: 20,
     fontWeight: "700",
+    letterSpacing: -0.01,
     marginBottom: 20,
   },
   scrollArea: {
     maxHeight: Dimensions.get("window").height * 0.55,
   },
   input: {
-    backgroundColor: "#1A1A24",
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#21212A",
-    color: "#FFFFFF",
+    borderColor: Colors.light.outlineVariant,
+    color: Colors.light.onSurface,
     fontSize: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginBottom: 12,
   },
   fieldLabel: {
-    color: "#A8A8B3",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 13,
     fontWeight: "600",
     marginBottom: 8,
   },
   predictions: {
-    backgroundColor: "#1A1A24",
+    backgroundColor: Colors.light.surfaceContainerLow,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#21212A",
+    borderColor: Colors.light.outlineVariant,
     maxHeight: 200,
     marginBottom: 12,
     overflow: "hidden",
@@ -449,32 +564,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#21212A",
+    borderBottomColor: Colors.light.outlineVariant,
   },
   predictionText: {
-    color: "#CCC",
+    color: Colors.light.onSurface,
     fontSize: 14,
     flex: 1,
   },
   selectedAddress: {
-    color: "#666",
+    color: Colors.light.onSurfaceVariant,
     fontSize: 13,
     marginBottom: 16,
     marginTop: -4,
   },
   saveBtn: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.primary,
     height: 54,
-    borderRadius: 16,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
+    marginTop: 24,
+    marginBottom: 8,
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   saveBtnDisabled: {
-    backgroundColor: "#24242B",
+    backgroundColor: Colors.light.surfaceContainer,
+    opacity: 0.5,
   },
   saveBtnText: {
-    color: "#0B0B0F",
+    color: Colors.light.onPrimary,
     fontSize: 16,
     fontWeight: "700",
   },

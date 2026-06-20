@@ -6,6 +6,7 @@ import {
   View,
   Text,
 } from "react-native";
+import Colors from "@/constants/Colors";
 
 type Props = TextInputProps & {
   label: string;
@@ -15,28 +16,35 @@ export function TextField({ label, ...props }: Props) {
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>{label}</Text>
-      <TextInput placeholderTextColor="#777" style={styles.input} {...props} />
+      <TextInput
+        placeholderTextColor={Colors.light.onSurfaceVariant}
+        style={styles.input}
+        {...props}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: {
-    marginBottom: 14,
+    marginBottom: 20,
   },
   label: {
-    color: "#D7D7DD",
-    fontSize: 13,
+    color: Colors.light.onSurfaceVariant,
+    fontSize: 14,
+    fontWeight: "600",
     marginBottom: 8,
+    letterSpacing: 0.02,
   },
   input: {
-    height: 54,
-    borderRadius: 16,
+    height: 56,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#24242B",
-    backgroundColor: "#121218",
-    color: "#FFF",
+    borderColor: Colors.light.outlineVariant,
+    backgroundColor: Colors.light.surfaceContainerLow,
+    color: Colors.light.onSurface,
     paddingHorizontal: 16,
     fontSize: 16,
+    paddingVertical: 16,
   },
 });
