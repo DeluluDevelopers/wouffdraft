@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Text,
   View,
@@ -14,6 +14,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  PanResponder,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/auth/useAuth";
@@ -33,6 +34,17 @@ export default function LocationsScreen() {
   const router = useRouter();
   const slideAnim = React.useRef(new Animated.Value(0)).current;
   const backdropAnim = React.useRef(new Animated.Value(0)).current;
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (evt, gestureState) => {
+        if (gestureState.dy < -50) {
+          closeModal();
+        }
+      },
+    })
+  ).current;
 
   const [locations, setLocations] = useState<LocationProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,7 +153,7 @@ export default function LocationsScreen() {
 
   const translateY = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [600, 0],
+    outputRange: [Dimensions.get("window").height, 0],
   });
   const backdropOpacity = backdropAnim.interpolate({
     inputRange: [0, 1],
@@ -218,7 +230,7 @@ export default function LocationsScreen() {
               style={styles.keyboardAvoid}
             >
               <View style={styles.sheetContent}>
-                <View style={styles.handleRow}>
+                <View style={styles.handleRow} {...panResponder.panHandlers}>
                   <View style={styles.handle} />
                   <Pressable onPress={closeModal} style={styles.closeX}>
                     <Ionicons name="close" size={22} color={Colors.light.onSurfaceVariant} />
@@ -229,6 +241,7 @@ export default function LocationsScreen() {
                 <ScrollView
                   showsVerticalScrollIndicator={false}
                   style={styles.scrollArea}
+                  keyboardShouldPersistTaps="handled"
                 >
                   <Text style={styles.fieldLabel}>Search address</Text>
                   <TextInput
@@ -242,6 +255,7 @@ export default function LocationsScreen() {
                     placeholder="Type your address..."
                     placeholderTextColor={Colors.light.onSurfaceVariant}
                     autoFocus
+                    onSubmitEditing={() => {}}
                   />
                   {searching && (
                     <ActivityIndicator
@@ -301,8 +315,8 @@ export default function LocationsScreen() {
             </KeyboardAvoidingView>
           ) : (
             <KeyboardAvoidingView
-              behavior="height"
-              keyboardVerticalOffset={0}
+              behavior={Platform.OS === 'macos' ? "padding" : "height"}
+              keyboardVerticalOffset={100}
               style={styles.keyboardAvoid}
             >
               <View style={styles.sheetContent}>
@@ -502,7 +516,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 40,
-    maxHeight: Dimensions.get("window").height * 0.65,
+    maxHeight: Dimensions.get("window").height * 0.75,
   },
   handleRow: {
     flexDirection: "row",

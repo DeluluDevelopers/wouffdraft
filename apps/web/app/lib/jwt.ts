@@ -12,14 +12,14 @@ const refreshSecret = new TextEncoder().encode(env.JWT_REFRESH_SECRET);
 export async function generateAccessToken(payload: JwtPayload) {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("15m")
+    .setExpirationTime("365d")
     .sign(accessSecret);
 }
 
 export async function generateRefreshToken(payload: JwtPayload) {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("7d")
+    .setExpirationTime("700d")
     .sign(refreshSecret);
 }
 

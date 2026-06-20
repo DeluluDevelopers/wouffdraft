@@ -10,7 +10,7 @@ import Colors from "@/constants/Colors";
 export default function VerifyOtpScreen() {
   const router = useRouter();
   const { phone: routePhone } = useLocalSearchParams<{ phone: string }>();
-  const { loginWithOtp, profileCompleted } = useAuth();
+  const { loginWithOtp, profile } = useAuth();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
 
@@ -20,11 +20,14 @@ export default function VerifyOtpScreen() {
       await loginWithOtp(phone, otp.trim());
     },
     onSuccess: () => {
-      if (profileCompleted) {
-        router.replace("/(app)/home");
-      } else {
-        router.replace("/(onboarding)/completeProfile/address");
-      }
+      // Give a moment for profile to fully hydrate
+      setTimeout(() => {
+        if (profile?.profileStatus === "PROFILE_COMPLETED") {
+          router.replace("/(app)/home");
+        } else {
+          router.replace("/(onboarding)/completeProfile/address");
+        }
+      }, 100);
     },
     onError: (err: any) => {
       const message = err?.response?.data?.message || "Invalid OTP. Please check the code and try again.";

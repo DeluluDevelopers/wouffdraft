@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Alert,
+  Image,
   Modal,
   Pressable,
   Text,
@@ -13,6 +14,7 @@ import {
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
+  PanResponder,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,9 +30,9 @@ import {
 import Colors from "@/constants/Colors";
 
 const SERVICES = [
-  { key: "Bathing", icon: "water", label: "Bathing" },
-  { key: "Cutting", icon: "cut", label: "Cutting" },
-  { key: "Hygiene", icon: "shield-checkmark", label: "Hygiene" },
+  { key: "Bathing", image: require("@/assets/images/bathing.jpeg"), label: "Bathing" },
+  { key: "Cutting", image: require("@/assets/images/cutting.jpeg"), label: "Cutting" },
+  { key: "Hygiene", image: require("@/assets/images/gromming.jpeg"), label: "Hygiene" },
 ] as const;
 
 type Service = (typeof SERVICES)[number]["key"];
@@ -53,6 +55,17 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const slideAnim = React.useRef(new Animated.Value(0)).current;
   const backdropAnim = React.useRef(new Animated.Value(0)).current;
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (evt, gestureState) => {
+        if (gestureState.dy < -50) {
+          closeModal();
+        }
+      },
+    })
+  ).current;
 
   useEffect(() => {
     if (profile?.pets) setPets(profile.pets);
@@ -161,7 +174,7 @@ export default function HomeScreen() {
 
   const translateY = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [600, 0],
+    outputRange: [Dimensions.get("window").height, 0],
   });
 
   const backdropOpacity = backdropAnim.interpolate({
@@ -173,6 +186,13 @@ export default function HomeScreen() {
 
   return (
     <Screen>
+      <View style={styles.bannerContainer}>
+        <Image
+          source={require("@/assets/images/bannerImage.png")}
+          style={styles.bannerImage}
+          resizeMode="cover"
+        />
+      </View>
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>
@@ -192,9 +212,11 @@ export default function HomeScreen() {
             style={styles.serviceCard}
             onPress={() => openServiceModal(svc.key)}
           >
-            <View style={styles.iconWrap}>
-              <Ionicons name={svc.icon as any} size={32} color="#FFFFFF" />
-            </View>
+            <Image
+              source={svc.image}
+              style={styles.serviceImage}
+              resizeMode="cover"
+            />
             <Text style={styles.serviceLabel}>{svc.label}</Text>
           </Pressable>
         ))}
@@ -216,7 +238,7 @@ export default function HomeScreen() {
         >
           {keyboardAvoid}
           <Pressable style={styles.sheetContent} onPress={() => {}}>
-            <View style={styles.handleRow}>
+            <View style={styles.handleRow} {...panResponder.panHandlers}>
               <View style={styles.handle} />
               <Pressable onPress={closeModal} style={styles.closeX}>
                 <Ionicons name="close" size={22} color={Colors.light.onSurfaceVariant} />
@@ -438,6 +460,21 @@ const styles = StyleSheet.create({
   servicesGrid: {
     flexDirection: "row",
     gap: 12,
+    marginTop: 4,
+  },
+  bannerContainer: {
+    marginBottom: 28,
+    borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: "#0c5252",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  bannerImage: {
+    width: "100%",
+    height: 180,
   },
   serviceCard: {
     flex: 1,
@@ -454,13 +491,11 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-  iconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.light.primaryContainer,
-    alignItems: "center",
-    justifyContent: "center",
+  serviceImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 16,
+    resizeMode: "cover",
   },
   serviceLabel: {
     color: Colors.light.onSurface,
@@ -494,7 +529,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 40,
-    maxHeight: Dimensions.get("window").height * 0.65,
+    maxHeight: Dimensions.get("window").height * 0.75,
   },
   handleRow: {
     flexDirection: "row",
