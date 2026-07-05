@@ -55,7 +55,7 @@ const PACKAGES = [
   },
 ] as const;
 
-type Service = "Bathing" | "Cutting" | "Hygiene" | "Blow Dry" | "Nail Trim" | "Spa" | "Cleaning";
+type Service = "Bathing" | "Cutting" | "Hygiene" | "BlowDry" | "NailTrim" | "Spa" | "Cleaning";
 type BookingType = "Instant" | "Scheduled";
 
 export default function HomeScreen() {

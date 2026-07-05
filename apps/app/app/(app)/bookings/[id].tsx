@@ -12,6 +12,7 @@ import { PrimaryButton } from "@/ui/PrimaryButton";
 import { Ionicons } from "@expo/vector-icons";
 import { getBooking, type Booking } from "@/lib/api";
 import Colors from "@/constants/Colors";
+import { StatusBadge } from "@/ui/StatusBadge";
 
 const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Bathing: "water",
@@ -72,25 +73,28 @@ export default function BookingDetailScreen() {
           />
         </View>
         <Text style={styles.serviceTitle}>{booking.service}</Text>
-        <View
-          style={[
-            styles.badge,
-            {
-              backgroundColor:
-                booking.type === "Instant" ? Colors.light.primaryContainer : Colors.light.surfaceContainer,
-            },
-          ]}
-        >
-          <Text
+        <View style={styles.badgeRow}>
+          <View
             style={[
-              styles.badgeText,
+              styles.badge,
               {
-                color: booking.type === "Instant" ? Colors.light.onPrimary : Colors.light.warning,
+                backgroundColor:
+                  booking.type === "Instant" ? Colors.light.primaryContainer : Colors.light.surfaceContainer,
               },
             ]}
           >
-            {booking.type}
-          </Text>
+            <Text
+              style={[
+                styles.badgeText,
+                {
+                  color: booking.type === "Instant" ? Colors.light.onPrimary : Colors.light.warning,
+                },
+              ]}
+            >
+              {booking.type}
+            </Text>
+          </View>
+          <StatusBadge status={booking.status} />
         </View>
       </View>
 
@@ -200,6 +204,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     letterSpacing: -0.01,
+  },
+  badgeRow: {
+    flexDirection: "row",
+    gap: 8,
   },
   badge: {
     paddingHorizontal: 12,

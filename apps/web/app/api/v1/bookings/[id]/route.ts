@@ -4,6 +4,7 @@ import { prisma } from "../../../../lib/prisma";
 import { NotFoundError } from "../../../../lib/error-handler";
 
 export const GET = apiHandler(async (req: NextRequest) => {
+  const userId = req.headers.get("x-user-id")!;
   const id = req.nextUrl.pathname.split("/").pop();
 
   const booking = await prisma.booking.findUnique({
@@ -11,7 +12,7 @@ export const GET = apiHandler(async (req: NextRequest) => {
     include: { pet: true, location: true },
   });
 
-  if (!booking) {
+  if (!booking || booking.userId !== userId) {
     throw new NotFoundError("Booking not found");
   }
 

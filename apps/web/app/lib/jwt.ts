@@ -32,3 +32,22 @@ export async function verifyRefreshToken(token: string): Promise<JwtPayload> {
   const { payload } = await jwtVerify(token, refreshSecret);
   return payload as unknown as JwtPayload;
 }
+
+export interface AdminJwtPayload {
+  role: "admin";
+}
+
+export async function generateAdminToken() {
+  return new SignJWT({ role: "admin" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("1d")
+    .sign(accessSecret);
+}
+
+export async function verifyAdminToken(token: string): Promise<AdminJwtPayload> {
+  const { payload } = await jwtVerify(token, accessSecret);
+  if (payload.role !== "admin") {
+    throw new Error("Not an admin token");
+  }
+  return payload as unknown as AdminJwtPayload;
+}

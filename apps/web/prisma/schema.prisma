@@ -121,6 +121,13 @@ enum BookingType {
   Scheduled
 }
 
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
 model Booking {
   id String @id @default(uuid())
 
@@ -135,6 +142,7 @@ model Booking {
 
   type BookingType
   service Service
+  status BookingStatus @default(PENDING)
   scheduledAt DateTime?
 
   createdAt DateTime @default(now())

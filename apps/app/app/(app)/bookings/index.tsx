@@ -14,6 +14,7 @@ import { Screen } from "@/ui/Screen";
 import { Ionicons } from "@expo/vector-icons";
 import { getBookings } from "@/lib/api";
 import Colors from "@/constants/Colors";
+import { StatusBadge } from "@/ui/StatusBadge";
 
 const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Bathing: "water",
@@ -72,26 +73,29 @@ export default function BookingsScreen() {
                   </Text>
                 </View>
               </View>
-              <View
-                style={[
-                  styles.badge,
-                  {
-                    backgroundColor:
-                      item.type === "Instant" ? Colors.light.primaryContainer : Colors.light.surfaceContainer,
-                  },
-                ]}
-              >
-                <Text
+              <View style={styles.badgeColumn}>
+                <View
                   style={[
-                    styles.badgeText,
+                    styles.badge,
                     {
-                      color:
-                        item.type === "Instant" ? Colors.light.onPrimary : Colors.light.warning,
+                      backgroundColor:
+                        item.type === "Instant" ? Colors.light.primaryContainer : Colors.light.surfaceContainer,
                     },
                   ]}
                 >
-                  {item.type}
-                </Text>
+                  <Text
+                    style={[
+                      styles.badgeText,
+                      {
+                        color:
+                          item.type === "Instant" ? Colors.light.onPrimary : Colors.light.warning,
+                      },
+                    ]}
+                  >
+                    {item.type}
+                  </Text>
+                </View>
+                <StatusBadge status={item.status} />
               </View>
             </Pressable>
           )}
@@ -164,6 +168,10 @@ const styles = StyleSheet.create({
     color: Colors.light.onSurfaceVariant,
     fontSize: 12,
     marginTop: 2,
+  },
+  badgeColumn: {
+    alignItems: "flex-end",
+    gap: 6,
   },
   badge: {
     paddingHorizontal: 10,

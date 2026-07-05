@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAccessToken } from "./app/lib/jwt";
+import { verifyAccessToken, verifyAdminToken } from "./app/lib/jwt";
 
 const publicPrefixes = ["/api/v1/auth/", "/api/v1/address/autocomplete"];
 
@@ -13,12 +13,50 @@ function corsResponse(body: unknown, status: number) {
   return NextResponse.json(body, { status, headers: corsHeaders });
 }
 
+async function hasValidAdminSession(request: NextRequest) {
+  const session = request.cookies.get("admin_session")?.value;
+  if (!session) return false;
+  try {
+    await verifyAdminToken(session);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
   if (request.method === "OPTIONS") {
     return corsResponse({}, 200);
   }
 
-  if (publicPrefixes.some((prefix) => request.nextUrl.pathname.startsWith(prefix))) {
+  // Admin dashboard pages
+  if (pathname.startsWith("/admin")) {
+    if (pathname === "/admin/login") {
+      return NextResponse.next();
+    }
+    if (!(await hasValidAdminSession(request))) {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Admin API routes
+  if (pathname.startsWith("/api/v1/admin/")) {
+    if (pathname === "/api/v1/admin/login") {
+      return NextResponse.next();
+    }
+    if (!(await hasValidAdminSession(request))) {
+      return corsResponse(
+        { status: 401, success: false, message: "Admin authentication required" },
+        401,
+      );
+    }
+    return NextResponse.next();
+  }
+
+  if (publicPrefixes.some((prefix) => pathname.startsWith(prefix))) {
     return NextResponse.next();
   }
 
@@ -48,5 +86,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/api/:path*",
+  matcher: ["/api/:path*", "/admin/:path*"],
 };
