@@ -36,15 +36,23 @@ export default function LoginScreen() {
   });
 
   const onContinue = () => {
-    if (!phone.trim()) {
+    const trimmed = phone.trim();
+    if (!trimmed) {
       Alert.alert("Phone required", "Enter your phone number.");
       return;
     }
-    mutation.mutate({ phoneNumber: countryCode + phone.trim() });
+    if (trimmed.length !== 10) {
+      Alert.alert(
+        "Invalid phone number",
+        "Enter a valid 10-digit phone number.",
+      );
+      return;
+    }
+    mutation.mutate({ phoneNumber: countryCode + trimmed });
   };
 
   return (
-    <Screen>
+    <Screen scroll>
       <View style={styles.container}>
         <View style={styles.brandRow}>
           <Image

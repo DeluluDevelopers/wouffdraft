@@ -44,7 +44,7 @@ export function Screen({
     <SafeAreaView style={[styles.safe, style]} edges={edges}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         <Container {...(containerProps as any)}>{children}</Container>

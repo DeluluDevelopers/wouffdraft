@@ -30,7 +30,7 @@ type AuthState = {
 type AuthContextType = AuthState & {
   bootstrap: () => Promise<void>;
   requestOtp: (phone: string) => Promise<void>;
-  loginWithOtp: (phone: string, otp: string) => Promise<void>;
+  loginWithOtp: (phone: string, otp: string) => Promise<Profile>;
   refreshSession: () => Promise<boolean>;
   finishProfile: (payload: CompleteProfilePayload) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -144,9 +144,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithOtp = async (phone: string, otp: string) => {
     const tokens = await verifyOtp({ phoneNumber: phone, otp });
-    await setAuthTokens(tokens.accessToken, tokens.refreshToken);
-    const profile = await hydrateProfile(tokens.accessToken);
+    await saveTokens(tokens.accessToken, tokens.refreshToken);
+    const profile = await getProfile(tokens.accessToken);
+    // Commit tokens + profile in one update so isAuthenticated and
+    // profileCompleted never flip in separate renders (that gap was
+    // enough for the (auth) layout guard to redirect to onboarding
+    // before profileCompleted caught up).
+    setState((prev) => ({
+      ...prev,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      profile,
+      profileCompleted: profile.profileStatus === "PROFILE_COMPLETED",
+      isAuthenticated: true,
+    }));
     queryClient.setQueryData(["profile"], profile);
+    return profile;
   };
 
   const finishProfile = async (payload: CompleteProfilePayload) => {

@@ -19,24 +19,21 @@ import { Radius, Spacing } from "@/constants/Spacing";
 export default function VerifyOtpScreen() {
   const router = useRouter();
   const { phone: routePhone } = useLocalSearchParams<{ phone: string }>();
-  const { loginWithOtp, profile } = useAuth();
+  const { loginWithOtp } = useAuth();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
 
   const mutation = useMutation({
     mutationFn: async () => {
       const phone = routePhone || "";
-      await loginWithOtp(phone, otp.trim());
+      return loginWithOtp(phone, otp.trim());
     },
-    onSuccess: () => {
-      // Give a moment for profile to fully hydrate
-      setTimeout(() => {
-        if (profile?.profileStatus === "PROFILE_COMPLETED") {
-          router.replace("/(app)/home");
-        } else {
-          router.replace("/(onboarding)/completeProfile/address");
-        }
-      }, 100);
+    onSuccess: (profile) => {
+      if (profile?.profileStatus === "PROFILE_COMPLETED") {
+        router.replace("/(app)/home");
+      } else {
+        router.replace("/(onboarding)/completeProfile/address");
+      }
     },
     onError: (err: any) => {
       const message =
@@ -56,7 +53,7 @@ export default function VerifyOtpScreen() {
   };
 
   return (
-    <Screen>
+    <Screen scroll>
       <View style={styles.container}>
         <Text style={styles.title}>VERIFY</Text>
         <Text style={styles.subtitle}>
