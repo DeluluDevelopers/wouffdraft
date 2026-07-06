@@ -143,6 +143,7 @@ model Booking {
   type BookingType
   service Service
   status BookingStatus @default(PENDING)
+  cancellationReason String?
   scheduledAt DateTime?
 
   createdAt DateTime @default(now())

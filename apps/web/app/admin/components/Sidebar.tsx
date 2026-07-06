@@ -44,7 +44,7 @@ export function Sidebar() {
         })}
       </nav>
       <button
-        className="admin-button admin-button-secondary"
+        className="admin-button admin-button-secondary admin-button-block"
         onClick={handleLogout}
       >
         Log out

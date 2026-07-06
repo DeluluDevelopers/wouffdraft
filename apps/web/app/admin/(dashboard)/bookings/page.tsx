@@ -1,22 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { getBookings } from "@/admin/lib/admin-api";
-import { BookingStatusSelect } from "@/admin/components/BookingStatusSelect";
+import { StatusBadge } from "@/admin/components/StatusBadge";
 import { PageHeaderSkeleton, TableSkeleton } from "@/admin/components/Skeletons";
 
 const STATUS_VALUES = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"];
+const SERVICE_VALUES = [
+  "Bathing",
+  "Cutting",
+  "Hygiene",
+  "BlowDry",
+  "NailTrim",
+  "Spa",
+  "Cleaning",
+];
+const TYPE_VALUES = ["Instant", "Scheduled"];
 
 export default function AdminBookingsPage() {
   const [activeStatus, setActiveStatus] = useState<string | undefined>(undefined);
+  const [search, setSearch] = useState("");
+  const [service, setService] = useState("");
+  const [type, setType] = useState("");
 
   const { data: bookings, isLoading, isError } = useQuery({
     queryKey: ["admin", "bookings", activeStatus ?? "ALL"],
     queryFn: () => getBookings(activeStatus),
     placeholderData: (previous) => previous,
   });
+
+  const filtered = useMemo(() => {
+    if (!bookings) return [];
+    const query = search.trim().toLowerCase();
+    return bookings.filter((booking) => {
+      if (service && booking.service !== service) return false;
+      if (type && booking.type !== type) return false;
+      if (!query) return true;
+      const haystack = [
+        booking.user?.name,
+        booking.user?.phoneNumber,
+        booking.user?.email,
+        booking.pet?.name,
+        booking.location?.label,
+        booking.service,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [bookings, search, service, type]);
 
   return (
     <div>
@@ -27,19 +62,52 @@ export default function AdminBookingsPage() {
           <div>
             <div className="admin-page-title">Bookings</div>
             <div className="admin-page-subtitle">
-              {bookings ? bookings.length : 0} booking
-              {bookings?.length === 1 ? "" : "s"}
+              {filtered.length} booking{filtered.length === 1 ? "" : "s"}
               {activeStatus ? ` · ${activeStatus}` : ""}
             </div>
           </div>
         </div>
       )}
 
-      <div className="admin-filter-bar">
+      <div className="admin-toolbar">
+        <div className="admin-search-wrap">
+          <span className="admin-search-icon">⌕</span>
+          <input
+            className="admin-search-input"
+            placeholder="Search by user, pet, location, service..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <select
+          className="admin-select"
+          value={service}
+          onChange={(e) => setService(e.target.value)}
+        >
+          <option value="">All services</option>
+          {SERVICE_VALUES.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+        <select
+          className="admin-select"
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+        >
+          <option value="">All types</option>
+          {TYPE_VALUES.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="admin-filter-bar" style={{ marginBottom: 16 }}>
         <button
-          className={
-            !activeStatus ? "admin-button" : "admin-button admin-button-secondary"
-          }
+          className={!activeStatus ? "admin-chip admin-chip-active" : "admin-chip"}
           onClick={() => setActiveStatus(undefined)}
         >
           All
@@ -48,9 +116,7 @@ export default function AdminBookingsPage() {
           <button
             key={value}
             className={
-              activeStatus === value
-                ? "admin-button"
-                : "admin-button admin-button-secondary"
+              activeStatus === value ? "admin-chip admin-chip-active" : "admin-chip"
             }
             onClick={() => setActiveStatus(value)}
           >
@@ -60,12 +126,12 @@ export default function AdminBookingsPage() {
       </div>
 
       {isLoading && !bookings ? (
-        <TableSkeleton rows={8} columns={8} />
+        <TableSkeleton rows={8} columns={9} />
       ) : isError || !bookings ? (
         <div className="admin-card admin-muted">Failed to load bookings.</div>
       ) : (
         <div className="admin-table-wrap">
-          {bookings.length === 0 ? (
+          {filtered.length === 0 ? (
             <div className="admin-table-empty">No bookings found.</div>
           ) : (
             <table className="admin-table">
@@ -79,10 +145,11 @@ export default function AdminBookingsPage() {
                   <th>Scheduled</th>
                   <th>Booked on</th>
                   <th>Status</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
-                {bookings.map((booking) => (
+                {filtered.map((booking) => (
                   <tr key={booking.id}>
                     <td>
                       <Link href={`/admin/users/${booking.userId}`}>
@@ -100,10 +167,15 @@ export default function AdminBookingsPage() {
                     </td>
                     <td>{new Date(booking.createdAt).toLocaleDateString()}</td>
                     <td>
-                      <BookingStatusSelect
-                        bookingId={booking.id}
-                        status={booking.status}
-                      />
+                      <StatusBadge status={booking.status} />
+                    </td>
+                    <td>
+                      <Link
+                        href={`/admin/bookings/${booking.id}`}
+                        className="admin-button admin-button-secondary"
+                      >
+                        Manage
+                      </Link>
                     </td>
                   </tr>
                 ))}

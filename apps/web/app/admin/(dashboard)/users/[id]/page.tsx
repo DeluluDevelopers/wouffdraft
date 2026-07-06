@@ -155,6 +155,7 @@ export default function AdminUserDetailPage() {
                   <th>Scheduled</th>
                   <th>Status</th>
                   <th>Booked on</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -173,6 +174,14 @@ export default function AdminUserDetailPage() {
                       <StatusBadge status={booking.status} />
                     </td>
                     <td>{new Date(booking.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <Link
+                        href={`/admin/bookings/${booking.id}`}
+                        className="admin-button admin-button-secondary"
+                      >
+                        Manage
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -72,7 +72,7 @@ export default function AdminLoginPage() {
           />
         </div>
 
-        <button className="admin-button" type="submit" disabled={loading}>
+        <button className="admin-button admin-button-block" type="submit" disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>

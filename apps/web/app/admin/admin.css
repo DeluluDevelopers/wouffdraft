@@ -102,16 +102,19 @@
 }
 
 .admin-button {
-  width: 100%;
-  padding: 13px 16px;
-  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  padding: 10px 16px;
+  border-radius: 10px;
   border: none;
   background: var(--admin-primary);
   color: var(--admin-on-primary);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  margin-top: 8px;
+  white-space: nowrap;
 }
 
 .admin-button:disabled {
@@ -131,6 +134,14 @@
 
 .admin-button-secondary:hover:not(:disabled) {
   background: var(--admin-surface-container-low);
+}
+
+.admin-button-block {
+  display: flex;
+  width: 100%;
+  padding: 13px 16px;
+  font-size: 15px;
+  margin-top: 8px;
 }
 
 /* ---------- Shell / Sidebar ---------- */
@@ -373,11 +384,74 @@
 
 /* ---------- Filters / forms ---------- */
 
-.admin-filter-bar {
+.admin-toolbar {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+}
+
+.admin-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+  max-width: 320px;
+}
+
+.admin-search-input {
+  width: 100%;
+  padding: 9px 12px 9px 34px;
+  border-radius: 10px;
+  border: 1px solid var(--admin-outline);
+  background: var(--admin-surface-container);
+  color: var(--admin-on-surface);
+  font-size: 14px;
+  outline: none;
+}
+
+.admin-search-input:focus {
+  border-color: var(--admin-primary);
+}
+
+.admin-search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--admin-on-surface-variant);
+  pointer-events: none;
+  font-size: 14px;
+}
+
+.admin-filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--admin-outline);
+  background: var(--admin-surface-container);
+  color: var(--admin-on-surface-variant);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.admin-chip:hover {
+  background: var(--admin-surface-container-low);
+}
+
+.admin-chip-active {
+  background: var(--admin-primary-container);
+  border-color: var(--admin-primary-container);
+  color: var(--admin-on-primary);
 }
 
 .admin-select {

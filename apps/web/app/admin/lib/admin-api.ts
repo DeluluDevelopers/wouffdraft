@@ -38,8 +38,10 @@ export type AdminBooking = {
   service: string;
   scheduledAt: string | null;
   createdAt: string;
+  updatedAt: string;
+  cancellationReason: string | null;
   pet: { id: string; name: string; species: string } | null;
-  location: { id: string; label: string } | null;
+  location: { id: string; label: string; address: string } | null;
   user?: { id: string; name: string | null; phoneNumber: string; email: string | null };
 };
 
@@ -83,9 +85,17 @@ export function getBookings(status?: string) {
   return request<AdminBooking[]>(`/api/v1/admin/bookings${query}`);
 }
 
-export function updateBookingStatus(id: string, status: string) {
+export function getBooking(id: string) {
+  return request<AdminBooking>(`/api/v1/admin/bookings/${id}`);
+}
+
+export function updateBookingStatus(
+  id: string,
+  status: string,
+  cancellationReason?: string,
+) {
   return request<AdminBooking>(`/api/v1/admin/bookings/${id}`, {
     method: "PATCH",
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, cancellationReason }),
   });
 }
