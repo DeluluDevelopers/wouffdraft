@@ -391,6 +391,70 @@
   cursor: pointer;
 }
 
+/* ---------- Skeletons ---------- */
+
+.admin-skeleton {
+  display: inline-block;
+  border-radius: 6px;
+  background: linear-gradient(
+    100deg,
+    var(--admin-surface-container-low) 30%,
+    var(--admin-outline) 45%,
+    var(--admin-surface-container-low) 60%
+  );
+  background-size: 250% 100%;
+  animation: admin-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes admin-skeleton-shimmer {
+  0% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-skeleton {
+    animation: none;
+    background: var(--admin-surface-container-low);
+  }
+}
+
+.admin-skeleton-text {
+  height: 14px;
+  width: 100%;
+}
+
+.admin-skeleton-title {
+  height: 22px;
+  width: 160px;
+  margin-bottom: 6px;
+}
+
+.admin-skeleton-subtitle {
+  height: 13px;
+  width: 220px;
+}
+
+.admin-skeleton-stat-value {
+  height: 28px;
+  width: 70px;
+  margin-bottom: 8px;
+}
+
+.admin-skeleton-stat-label {
+  height: 12px;
+  width: 100px;
+}
+
+.admin-skeleton-badge {
+  height: 22px;
+  width: 76px;
+  border-radius: 8px;
+}
+
 .admin-select:disabled {
   opacity: 0.6;
   cursor: not-allowed;

@@ -2,12 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiHandler } from "../../../lib/api-handler";
 import { prisma } from "../../../lib/prisma";
 import { ForbiddenError } from "../../../lib/error-handler";
-import { BadRequestError } from "../../../lib/error-handler";
 import { NotFoundError } from "../../../lib/error-handler";
-import { Client } from "@googlemaps/google-maps-services-js";
-import { env } from "../../../lib/env";
+import { getPlaceDetails } from "../../../lib/places";
 import z from "zod";
-const client = new Client({});
 
 const profileSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -130,25 +127,7 @@ export const POST = apiHandler(async (req: NextRequest) => {
     });
   }
 
-  const placeResponse = await client.placeDetails({
-    params: {
-      place_id: body.placeId,
-      key: env.GOOGLE_MAPS_API_KEY,
-    },
-  });
-
-  if (placeResponse.data.status !== "OK") {
-    throw new BadRequestError("Invalid place ID");
-  }
-
-  const result = placeResponse.data.result;
-  const address = result.formatted_address;
-  const latitude = result.geometry?.location.lat;
-  const longitude = result.geometry?.location.lng;
-
-  if (!address || latitude === undefined || longitude === undefined) {
-    throw new BadRequestError("Could not resolve address from place ID");
-  }
+  const { address, latitude, longitude } = await getPlaceDetails(body.placeId);
 
   await prisma.$transaction([
     prisma.user.update({

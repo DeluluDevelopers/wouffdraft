@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiHandler } from "../../../../lib/api-handler";
 import z from "zod";
-import { Client } from "@googlemaps/google-maps-services-js";
-import { env } from "../../../../lib/env";
-import { NotFoundError } from "../../../../lib/error-handler";
-
-const client = new Client({});
+import { autocompletePlaces } from "../../../../lib/places";
 
 const addressAutocompleteSchema = z.object({
   input: z.string().min(1, "Input is required"),
@@ -19,23 +15,7 @@ export const GET = apiHandler(async (req: NextRequest) => {
     input,
   });
 
-  const response = await client.placeAutocomplete({
-    params: {
-      input: validatedInput,
-      key: env.GOOGLE_MAPS_API_KEY,
-      components: ["country:in"],
-    },
-  });
+  const predictions = await autocompletePlaces(validatedInput);
 
-  const { data } = response;
-  if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
-    throw new NotFoundError("Failed to fetch address predictions");
-  }
-
-  return NextResponse.json({
-    predictions: data.predictions.map((prediction) => ({
-      description: prediction.description,
-      placeId: prediction.place_id,
-    })),
-  });
+  return NextResponse.json({ predictions });
 });

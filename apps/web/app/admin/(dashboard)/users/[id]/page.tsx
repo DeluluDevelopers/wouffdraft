@@ -1,31 +1,43 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { getUser } from "@/admin/lib/admin-api";
 import { StatusBadge } from "@/admin/components/StatusBadge";
+import { CardSkeleton, PageHeaderSkeleton } from "@/admin/components/Skeletons";
 
-export const dynamic = "force-dynamic";
+export default function AdminUserDetailPage() {
+  const { id } = useParams<{ id: string }>();
 
-export default async function AdminUserDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-
-  const user = await prisma.user.findUnique({
-    where: { id },
-    include: {
-      location: true,
-      pets: true,
-      bookings: {
-        include: { pet: true, location: true },
-        orderBy: { createdAt: "desc" },
-      },
-    },
+  const { data: user, isLoading, isError } = useQuery({
+    queryKey: ["admin", "user", id],
+    queryFn: () => getUser(id),
+    enabled: !!id,
   });
 
-  if (!user) {
-    notFound();
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeaderSkeleton />
+        <CardSkeleton lines={4} />
+        <CardSkeleton lines={3} />
+        <CardSkeleton lines={3} />
+      </div>
+    );
+  }
+
+  if (isError || !user) {
+    return (
+      <div>
+        <div className="admin-page-header">
+          <div className="admin-page-title">User not found</div>
+        </div>
+        <Link href="/admin/users" className="admin-button admin-button-secondary">
+          Back to users
+        </Link>
+      </div>
+    );
   }
 
   return (

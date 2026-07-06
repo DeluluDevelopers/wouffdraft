@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiHandler } from "../../../../lib/api-handler";
 import { prisma } from "../../../../lib/prisma";
-import { BadRequestError, NotFoundError } from "../../../../lib/error-handler";
-import { Client } from "@googlemaps/google-maps-services-js";
-import { env } from "../../../../lib/env";
+import { NotFoundError } from "../../../../lib/error-handler";
+import { getPlaceDetails } from "../../../../lib/places";
 import z from "zod";
-
-const client = new Client({});
 
 const updateLocationSchema = z.object({
   label: z.string().min(1, "Label is required").optional(),
@@ -30,21 +27,10 @@ export const PUT = apiHandler(async (req: NextRequest) => {
   let placeId = existing.placeId;
 
   if (body.placeId) {
-    const placeResponse = await client.placeDetails({
-      params: {
-        place_id: body.placeId,
-        key: env.GOOGLE_MAPS_API_KEY,
-      },
-    });
-
-    if (placeResponse.data.status !== "OK") {
-      throw new BadRequestError("Invalid place ID");
-    }
-
-    const result = placeResponse.data.result;
-    address = result.formatted_address!;
-    latitude = result.geometry?.location.lat!;
-    longitude = result.geometry?.location.lng!;
+    const details = await getPlaceDetails(body.placeId);
+    address = details.address;
+    latitude = details.latitude;
+    longitude = details.longitude;
     placeId = body.placeId;
   }
 

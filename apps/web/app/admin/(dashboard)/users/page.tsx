@@ -1,20 +1,35 @@
+"use client";
+
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { useQuery } from "@tanstack/react-query";
+import { getUsers } from "@/admin/lib/admin-api";
+import { PageHeaderSkeleton, TableSkeleton } from "@/admin/components/Skeletons";
 
-export const dynamic = "force-dynamic";
-
-export default async function AdminUsersPage() {
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      phoneNumber: true,
-      email: true,
-      profileStatus: true,
-      _count: { select: { pets: true, bookings: true, location: true } },
-    },
-    orderBy: { phoneNumber: "asc" },
+export default function AdminUsersPage() {
+  const { data: users, isLoading, isError } = useQuery({
+    queryKey: ["admin", "users"],
+    queryFn: getUsers,
   });
+
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeaderSkeleton />
+        <TableSkeleton rows={8} columns={7} />
+      </div>
+    );
+  }
+
+  if (isError || !users) {
+    return (
+      <div>
+        <div className="admin-page-header">
+          <div className="admin-page-title">Users</div>
+        </div>
+        <div className="admin-card admin-muted">Failed to load users.</div>
+      </div>
+    );
+  }
 
   return (
     <div>
