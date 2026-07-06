@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { getUsers } from "@/admin/lib/admin-api";
+import { useDebouncedValue } from "@/admin/lib/useDebouncedValue";
 import { PageHeaderSkeleton, TableSkeleton } from "@/admin/components/Skeletons";
 
 const PROFILE_STATUS_VALUES = [
@@ -16,25 +17,13 @@ const PROFILE_STATUS_VALUES = [
 export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [profileStatus, setProfileStatus] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
 
-  const { data: users, isLoading, isError } = useQuery({
-    queryKey: ["admin", "users"],
-    queryFn: getUsers,
+  const { data: users, isLoading, isFetching, isError } = useQuery({
+    queryKey: ["admin", "users", { search: debouncedSearch, profileStatus }],
+    queryFn: () => getUsers({ search: debouncedSearch, profileStatus }),
+    placeholderData: (previous) => previous,
   });
-
-  const filtered = useMemo(() => {
-    if (!users) return [];
-    const query = search.trim().toLowerCase();
-    return users.filter((user) => {
-      if (profileStatus && user.profileStatus !== profileStatus) return false;
-      if (!query) return true;
-      const haystack = [user.name, user.phoneNumber, user.email]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [users, search, profileStatus]);
 
   if (isLoading) {
     return (
@@ -62,8 +51,8 @@ export default function AdminUsersPage() {
         <div>
           <div className="admin-page-title">Users</div>
           <div className="admin-page-subtitle">
-            {filtered.length} of {users.length} registered user
-            {users.length === 1 ? "" : "s"}
+            {users.length} user{users.length === 1 ? "" : "s"}
+            {isFetching ? " · updating…" : ""}
           </div>
         </div>
       </div>
@@ -93,7 +82,7 @@ export default function AdminUsersPage() {
       </div>
 
       <div className="admin-table-wrap">
-        {filtered.length === 0 ? (
+        {users.length === 0 ? (
           <div className="admin-table-empty">No users found.</div>
         ) : (
           <table className="admin-table">
@@ -109,7 +98,7 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((user) => (
+              {users.map((user) => (
                 <tr key={user.id}>
                   <td>
                     <Link href={`/admin/users/${user.id}`}>

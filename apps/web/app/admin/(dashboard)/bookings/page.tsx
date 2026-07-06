@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { getBookings } from "@/admin/lib/admin-api";
+import { useDebouncedValue } from "@/admin/lib/useDebouncedValue";
 import { StatusBadge } from "@/admin/components/StatusBadge";
 import { PageHeaderSkeleton, TableSkeleton } from "@/admin/components/Skeletons";
 
@@ -24,34 +25,15 @@ export default function AdminBookingsPage() {
   const [search, setSearch] = useState("");
   const [service, setService] = useState("");
   const [type, setType] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
 
-  const { data: bookings, isLoading, isError } = useQuery({
-    queryKey: ["admin", "bookings", activeStatus ?? "ALL"],
-    queryFn: () => getBookings(activeStatus),
+  const filter = { status: activeStatus, service, type, search: debouncedSearch };
+
+  const { data: bookings, isLoading, isFetching, isError } = useQuery({
+    queryKey: ["admin", "bookings", filter],
+    queryFn: () => getBookings(filter),
     placeholderData: (previous) => previous,
   });
-
-  const filtered = useMemo(() => {
-    if (!bookings) return [];
-    const query = search.trim().toLowerCase();
-    return bookings.filter((booking) => {
-      if (service && booking.service !== service) return false;
-      if (type && booking.type !== type) return false;
-      if (!query) return true;
-      const haystack = [
-        booking.user?.name,
-        booking.user?.phoneNumber,
-        booking.user?.email,
-        booking.pet?.name,
-        booking.location?.label,
-        booking.service,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(query);
-    });
-  }, [bookings, search, service, type]);
 
   return (
     <div>
@@ -62,8 +44,10 @@ export default function AdminBookingsPage() {
           <div>
             <div className="admin-page-title">Bookings</div>
             <div className="admin-page-subtitle">
-              {filtered.length} booking{filtered.length === 1 ? "" : "s"}
+              {bookings ? bookings.length : 0} booking
+              {bookings?.length === 1 ? "" : "s"}
               {activeStatus ? ` · ${activeStatus}` : ""}
+              {isFetching ? " · updating…" : ""}
             </div>
           </div>
         </div>
@@ -74,7 +58,7 @@ export default function AdminBookingsPage() {
           <span className="admin-search-icon">⌕</span>
           <input
             className="admin-search-input"
-            placeholder="Search by user, pet, location, service..."
+            placeholder="Search by user, pet, location..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -131,7 +115,7 @@ export default function AdminBookingsPage() {
         <div className="admin-card admin-muted">Failed to load bookings.</div>
       ) : (
         <div className="admin-table-wrap">
-          {filtered.length === 0 ? (
+          {bookings.length === 0 ? (
             <div className="admin-table-empty">No bookings found.</div>
           ) : (
             <table className="admin-table">
@@ -149,7 +133,7 @@ export default function AdminBookingsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((booking) => (
+                {bookings.map((booking) => (
                   <tr key={booking.id}>
                     <td>
                       <Link href={`/admin/users/${booking.userId}`}>

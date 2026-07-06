@@ -72,17 +72,42 @@ export function getStats() {
   return request<AdminStats>("/api/v1/admin/stats");
 }
 
-export function getUsers() {
-  return request<AdminUserSummary[]>("/api/v1/admin/users");
+export type UsersFilter = {
+  search?: string;
+  profileStatus?: string;
+};
+
+export function getUsers(filter: UsersFilter = {}) {
+  const params = new URLSearchParams();
+  if (filter.search) params.set("search", filter.search);
+  if (filter.profileStatus) params.set("profileStatus", filter.profileStatus);
+  const query = params.toString();
+  return request<AdminUserSummary[]>(
+    `/api/v1/admin/users${query ? `?${query}` : ""}`,
+  );
 }
 
 export function getUser(id: string) {
   return request<AdminUserDetail>(`/api/v1/admin/users/${id}`);
 }
 
-export function getBookings(status?: string) {
-  const query = status ? `?status=${status}` : "";
-  return request<AdminBooking[]>(`/api/v1/admin/bookings${query}`);
+export type BookingsFilter = {
+  status?: string;
+  service?: string;
+  type?: string;
+  search?: string;
+};
+
+export function getBookings(filter: BookingsFilter = {}) {
+  const params = new URLSearchParams();
+  if (filter.status) params.set("status", filter.status);
+  if (filter.service) params.set("service", filter.service);
+  if (filter.type) params.set("type", filter.type);
+  if (filter.search) params.set("search", filter.search);
+  const query = params.toString();
+  return request<AdminBooking[]>(
+    `/api/v1/admin/bookings${query ? `?${query}` : ""}`,
+  );
 }
 
 export function getBooking(id: string) {
