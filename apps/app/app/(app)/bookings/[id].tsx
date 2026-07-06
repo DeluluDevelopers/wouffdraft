@@ -134,6 +134,18 @@ export default function BookingDetailScreen() {
           value={booking.id.slice(0, 8) + "..."}
         />
       </View>
+
+      {booking.status === "CANCELLED" && booking.cancellationReason && (
+        <View style={styles.cancellationCard}>
+          <View style={styles.cancellationHeader}>
+            <Ionicons name="close-circle" size={18} color={Colors.light.error} />
+            <Text style={styles.cancellationTitle}>Cancellation reason</Text>
+          </View>
+          <Text style={styles.cancellationText}>
+            {booking.cancellationReason}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -249,5 +261,27 @@ const styles = StyleSheet.create({
     color: Colors.light.onSurface,
     fontSize: 14,
     fontWeight: "600",
+  },
+  cancellationCard: {
+    backgroundColor: Colors.light.errorContainer,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+    gap: 6,
+  },
+  cancellationHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  cancellationTitle: {
+    color: Colors.light.error,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  cancellationText: {
+    color: Colors.light.onErrorContainer,
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

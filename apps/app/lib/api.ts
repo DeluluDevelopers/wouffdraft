@@ -127,6 +127,7 @@ export type Booking = {
   service: "Bathing" | "Cutting" | "Hygiene" | "BlowDry" | "NailTrim" | "Spa" | "Cleaning";
   type: "Instant" | "Scheduled";
   status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+  cancellationReason: string | null;
   scheduledAt: string | null;
   createdAt: string;
   updatedAt: string;
