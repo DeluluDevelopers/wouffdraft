@@ -6,19 +6,17 @@ import {
   ScrollView,
   Pressable,
   TextInput,
-  Modal,
-  Animated,
-  Dimensions,
   Alert,
   Switch,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/auth/useAuth";
 import { Screen } from "@/ui/Screen";
+import { Card } from "@/ui/Card";
+import { BottomSheet } from "@/ui/BottomSheet";
 import { Ionicons } from "@expo/vector-icons";
+import { PawIcon } from "@/components/icons/ServiceIcons";
 import {
   updateProfile,
   createPet,
@@ -28,6 +26,8 @@ import {
   type CreatePetPayload,
 } from "@/lib/api";
 import Colors from "@/constants/Colors";
+import Typography, { Fonts } from "@/constants/Typography";
+import { Radius, Spacing } from "@/constants/Spacing";
 
 const SPECIES_OPTIONS = ["Dog", "Cat"] as const;
 const GENDER_OPTIONS = ["Male", "Female"] as const;
@@ -58,16 +58,10 @@ const emptyPetForm = (): PetFormData => ({
 export default function ProfileScreen() {
   const { profile, accessToken, refreshProfile } = useAuth();
   const router = useRouter();
-  const nameSlideAnim = React.useRef(new Animated.Value(0)).current;
-  const nameBackdropAnim = React.useRef(new Animated.Value(0)).current;
-  const petSlideAnim = React.useRef(new Animated.Value(0)).current;
-  const petBackdropAnim = React.useRef(new Animated.Value(0)).current;
 
-  // Name edit modal
   const [nameModalVisible, setNameModalVisible] = useState(false);
   const [editName, setEditName] = useState("");
 
-  // Pet form modal
   const [petModalVisible, setPetModalVisible] = useState(false);
   const [petForm, setPetForm] = useState<PetFormData>(emptyPetForm());
   const [editingPetId, setEditingPetId] = useState<string | null>(null);
@@ -76,34 +70,6 @@ export default function ProfileScreen() {
   const openNameModal = () => {
     setEditName(profile?.name || "");
     setNameModalVisible(true);
-    Animated.parallel([
-      Animated.spring(nameSlideAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        damping: 20,
-        stiffness: 200,
-      }),
-      Animated.timing(nameBackdropAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
-  const closeNameModal = () => {
-    Animated.parallel([
-      Animated.timing(nameSlideAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(nameBackdropAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start(() => setNameModalVisible(false));
   };
 
   const saveName = async () => {
@@ -112,7 +78,7 @@ export default function ProfileScreen() {
     try {
       await updateProfile(accessToken, { name: editName.trim() });
       await refreshProfile();
-      closeNameModal();
+      setNameModalVisible(false);
     } catch {
       Alert.alert("Error", "Failed to update name");
     } finally {
@@ -138,37 +104,11 @@ export default function ProfileScreen() {
       setPetForm(emptyPetForm());
     }
     setPetModalVisible(true);
-    Animated.parallel([
-      Animated.spring(petSlideAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        damping: 20,
-        stiffness: 200,
-      }),
-      Animated.timing(petBackdropAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
   };
 
   const closePetModal = () => {
-    Animated.parallel([
-      Animated.timing(petSlideAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(petBackdropAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setPetModalVisible(false);
-      setEditingPetId(null);
-    });
+    setPetModalVisible(false);
+    setEditingPetId(null);
   };
 
   const savePet = async () => {
@@ -215,11 +155,7 @@ export default function ProfileScreen() {
   const confirmDeletePet = (pet: PetProfile) => {
     Alert.alert(`Delete ${pet.name}?`, "This action cannot be undone.", [
       { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => handleDeletePet(pet.id),
-      },
+      { text: "Delete", style: "destructive", onPress: () => handleDeletePet(pet.id) },
     ]);
   };
 
@@ -233,23 +169,6 @@ export default function ProfileScreen() {
     }
   };
 
-  const nameTranslateY = nameSlideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [600, 0],
-  });
-  const nameBackdropOpacity = nameBackdropAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 0.6],
-  });
-  const petTranslateY = petSlideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [600, 0],
-  });
-  const petBackdropOpacity = petBackdropAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 0.6],
-  });
-
   const pets = profile?.pets || [];
   const primaryLocation = profile?.location?.[0] || null;
 
@@ -258,59 +177,47 @@ export default function ProfileScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Profile</Text>
 
-        {/* Personal Info Section */}
         <Text style={styles.sectionTitle}>Personal Information</Text>
-        <View style={styles.card}>
+        <Card>
           <View style={styles.infoRow}>
-            <Ionicons name="person-outline" size={20} color="#A8A8B3" />
+            <Ionicons name="person-outline" size={20} color={Colors.light.onSurfaceVariant} />
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Name</Text>
               <Text style={styles.infoValue}>{profile?.name || "Not set"}</Text>
             </View>
             <Pressable onPress={openNameModal} style={styles.editBtn}>
-              <Ionicons name="pencil" size={18} color="#4ADE80" />
+              <Ionicons name="pencil" size={18} color={Colors.light.primary} />
             </Pressable>
           </View>
           <View style={styles.divider} />
           <View style={styles.infoRow}>
-            <Ionicons name="call-outline" size={20} color="#A8A8B3" />
+            <Ionicons name="call-outline" size={20} color={Colors.light.onSurfaceVariant} />
             <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Phone</Text>
               <Text style={styles.infoValue}>{profile?.phoneNumber || ""}</Text>
             </View>
           </View>
-        </View>
+        </Card>
 
-        {/* Location Section */}
         <Text style={styles.sectionTitle}>Location</Text>
-        <Pressable
-          style={styles.card}
-          onPress={() => router.push("/(app)/profile/locations")}
-        >
+        <Card onPress={() => router.push("/(app)/profile/locations")}>
           <View style={styles.infoRow}>
-            <Ionicons name="location-outline" size={20} color="#A8A8B3" />
+            <Ionicons name="location-outline" size={20} color={Colors.light.onSurfaceVariant} />
             <View style={styles.infoContent}>
               {primaryLocation ? (
-                <>
-                  <Text style={styles.infoValue}>
-                    {primaryLocation.address.split(",")[0]}
-                  </Text>
-                </>
+                <Text style={styles.infoValue}>{primaryLocation.address.split(",")[0]}</Text>
               ) : (
-                <Text style={[styles.infoValue, { color: "#666" }]}>
-                  No location saved
-                </Text>
+                <Text style={[styles.infoValue, styles.mutedValue]}>No location saved</Text>
               )}
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#555" />
+            <Ionicons name="chevron-forward" size={18} color={Colors.light.outline} />
           </View>
-        </Pressable>
+        </Card>
 
-        {/* Pets Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Pets ({pets.length})</Text>
           <Pressable onPress={() => openPetModal()} style={styles.addPetBtn}>
-            <Ionicons name="add" size={20} color="#4ADE80" />
+            <Ionicons name="add" size={18} color={Colors.light.onPrimary} />
             <Text style={styles.addPetText}>Add Pet</Text>
           </Pressable>
         </View>
@@ -321,14 +228,10 @@ export default function ProfileScreen() {
           </Text>
         ) : (
           pets.map((pet) => (
-            <View key={pet.id} style={styles.petCard}>
+            <Card key={pet.id} style={styles.petCard}>
               <View style={styles.petCardLeft}>
                 <View style={styles.petIcon}>
-                  <Ionicons
-                    name={pet.species === "Dog" ? "paw" : "paw-outline"}
-                    size={22}
-                    color="#FFFFFF"
-                  />
+                  <PawIcon size={20} color={Colors.light.primary} />
                 </View>
                 <View style={styles.petInfo}>
                   <Text style={styles.petName}>{pet.name}</Text>
@@ -340,545 +243,200 @@ export default function ProfileScreen() {
                 </View>
               </View>
               <View style={styles.petActions}>
-                <Pressable
-                  onPress={() => openPetModal(pet)}
-                  style={styles.petActionBtn}
-                >
-                  <Ionicons name="pencil" size={18} color="#A8A8B3" />
+                <Pressable onPress={() => openPetModal(pet)} style={styles.petActionBtn}>
+                  <Ionicons name="pencil" size={17} color={Colors.light.onSurfaceVariant} />
                 </Pressable>
-                <Pressable
-                  onPress={() => confirmDeletePet(pet)}
-                  style={styles.petActionBtn}
-                >
-                  <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+                <Pressable onPress={() => confirmDeletePet(pet)} style={styles.petActionBtn}>
+                  <Ionicons name="trash-outline" size={17} color={Colors.light.error} />
                 </Pressable>
               </View>
-            </View>
+            </Card>
           ))
         )}
       </ScrollView>
 
-      {/* Name Edit Modal */}
-      <Modal
+      {/* Name Edit Sheet */}
+      <BottomSheet
         visible={nameModalVisible}
-        transparent
-        animationType="none"
-        onRequestClose={closeNameModal}
+        onClose={() => setNameModalVisible(false)}
+        title="Edit Name"
       >
-        <View style={StyleSheet.absoluteFill}>
-          <Pressable style={styles.backdrop} onPress={closeNameModal}>
-            <Animated.View
-              style={[
-                StyleSheet.absoluteFill,
-                { opacity: nameBackdropOpacity, backgroundColor: "#000" },
-              ]}
-            />
-          </Pressable>
-        </View>
-        <Animated.View
-          style={[
-            styles.sheet,
-            { transform: [{ translateY: nameTranslateY }] },
-          ]}
+        <TextInput
+          style={styles.input}
+          value={editName}
+          onChangeText={setEditName}
+          placeholder="Your name"
+          placeholderTextColor={Colors.light.outline}
+          autoFocus
+        />
+        <Pressable
+          style={[styles.saveBtn, (!editName.trim() || saving) && styles.saveBtnDisabled]}
+          onPress={saveName}
+          disabled={!editName.trim() || saving}
         >
-          {Platform.OS === 'ios' ? (
-            <KeyboardAvoidingView
-              behavior="padding"
-              keyboardVerticalOffset={100}
-              style={styles.keyboardAvoid}
-            >
-              <View style={styles.sheetContent}>
-                <View style={styles.handleRow}>
-                  <View style={styles.handle} />
-                  <Pressable onPress={closeNameModal} style={styles.closeX}>
-                    <Ionicons name="close" size={22} color={Colors.light.onSurfaceVariant} />
-                  </Pressable>
-                </View>
-                <Text style={styles.sheetTitle}>Edit Name</Text>
-                <TextInput
-                  style={styles.input}
-                  value={editName}
-                  onChangeText={setEditName}
-                  placeholder="Your name"
-                  placeholderTextColor={Colors.light.onSurfaceVariant}
-                  autoFocus
-                />
-                <Pressable
-                  style={[
-                    styles.saveBtn,
-                    (!editName.trim() || saving) && styles.saveBtnDisabled,
-                  ]}
-                  onPress={saveName}
-                  disabled={!editName.trim() || saving}
-                >
-                  {saving ? (
-                    <ActivityIndicator color={Colors.light.onPrimary} />
-                  ) : (
-                    <Text style={styles.saveBtnText}>Save</Text>
-                  )}
-                </Pressable>
-              </View>
-            </KeyboardAvoidingView>
+          {saving ? (
+            <ActivityIndicator color={Colors.light.onPrimary} />
           ) : (
-            <KeyboardAvoidingView
-              behavior="height"
-              keyboardVerticalOffset={0}
-              style={styles.keyboardAvoid}
-            >
-              <View style={styles.sheetContent}>
-                <View style={styles.handleRow}>
-                  <View style={styles.handle} />
-                  <Pressable onPress={closeNameModal} style={styles.closeX}>
-                    <Ionicons name="close" size={22} color={Colors.light.onSurfaceVariant} />
-                  </Pressable>
-                </View>
-                <Text style={styles.sheetTitle}>Edit Name</Text>
-                <TextInput
-                  style={styles.input}
-                  value={editName}
-                  onChangeText={setEditName}
-                  placeholder="Your name"
-                  placeholderTextColor={Colors.light.onSurfaceVariant}
-                  autoFocus
-                />
-                <Pressable
-                  style={[
-                    styles.saveBtn,
-                    (!editName.trim() || saving) && styles.saveBtnDisabled,
-                  ]}
-                  onPress={saveName}
-                  disabled={!editName.trim() || saving}
-                >
-                  {saving ? (
-                    <ActivityIndicator color={Colors.light.onPrimary} />
-                  ) : (
-                    <Text style={styles.saveBtnText}>Save</Text>
-                  )}
-                </Pressable>
-              </View>
-            </KeyboardAvoidingView>
+            <Text style={styles.saveBtnText}>Save</Text>
           )}
-        </Animated.View>
-      </Modal>
+        </Pressable>
+      </BottomSheet>
 
-      {/* Pet Edit/Create Modal */}
-      <Modal
+      {/* Pet Edit/Create Sheet */}
+      <BottomSheet
         visible={petModalVisible}
-        transparent
-        animationType="none"
-        onRequestClose={closePetModal}
+        onClose={closePetModal}
+        title={editingPetId ? "Edit Pet" : "Add Pet"}
       >
-        <View style={StyleSheet.absoluteFill}>
-          <Pressable style={styles.backdrop} onPress={closePetModal}>
-            <Animated.View
-              style={[
-                StyleSheet.absoluteFill,
-                { opacity: petBackdropOpacity, backgroundColor: "#000" },
-              ]}
+        <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollArea}>
+          <Text style={styles.fieldLabel}>Name</Text>
+          <TextInput
+            style={styles.input}
+            value={petForm.name}
+            onChangeText={(t) => setPetForm({ ...petForm, name: t })}
+            placeholder="Pet name"
+            placeholderTextColor={Colors.light.outline}
+          />
+
+          <Text style={styles.fieldLabel}>Species</Text>
+          <View style={styles.optionRow}>
+            {SPECIES_OPTIONS.map((s) => (
+              <Pressable
+                key={s}
+                style={[styles.optionChip, petForm.species === s && styles.optionChipActive]}
+                onPress={() => setPetForm({ ...petForm, species: s })}
+              >
+                <Text
+                  style={[
+                    styles.optionChipText,
+                    petForm.species === s && styles.optionChipTextActive,
+                  ]}
+                >
+                  {s}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Text style={styles.fieldLabel}>Breed (optional)</Text>
+          <TextInput
+            style={styles.input}
+            value={petForm.breed}
+            onChangeText={(t) => setPetForm({ ...petForm, breed: t })}
+            placeholder="e.g. Labrador, Persian"
+            placeholderTextColor={Colors.light.outline}
+          />
+
+          <Text style={styles.fieldLabel}>Age (months)</Text>
+          <TextInput
+            style={styles.input}
+            value={petForm.ageMonths}
+            onChangeText={(t) =>
+              setPetForm({ ...petForm, ageMonths: t.replace(/[^0-9]/g, "") })
+            }
+            placeholder="e.g. 12"
+            placeholderTextColor={Colors.light.outline}
+            keyboardType="numeric"
+          />
+
+          <Text style={styles.fieldLabel}>Gender</Text>
+          <View style={styles.optionRow}>
+            {GENDER_OPTIONS.map((g) => (
+              <Pressable
+                key={g}
+                style={[styles.optionChip, petForm.gender === g && styles.optionChipActive]}
+                onPress={() => setPetForm({ ...petForm, gender: g })}
+              >
+                <Text
+                  style={[
+                    styles.optionChipText,
+                    petForm.gender === g && styles.optionChipTextActive,
+                  ]}
+                >
+                  {g === "Male" ? "♂ Male" : "♀ Female"}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Text style={styles.fieldLabel}>Vaccination Status</Text>
+          <View style={styles.optionRow}>
+            {VACCINATION_OPTIONS.map((v) => (
+              <Pressable
+                key={v}
+                style={[
+                  styles.optionChip,
+                  petForm.vaccinationStatus === v && styles.optionChipActive,
+                ]}
+                onPress={() => setPetForm({ ...petForm, vaccinationStatus: v })}
+              >
+                <Text
+                  style={[
+                    styles.optionChipText,
+                    petForm.vaccinationStatus === v && styles.optionChipTextActive,
+                  ]}
+                >
+                  {v === "UpToDate" ? "Up to Date" : v === "Partial" ? "Partial" : "None"}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <View style={styles.switchRow}>
+            <Text style={styles.fieldLabel}>Medical Conditions</Text>
+            <Switch
+              value={petForm.medicalConditions}
+              onValueChange={(v) => setPetForm({ ...petForm, medicalConditions: v })}
+              trackColor={{ false: Colors.light.surfaceContainerHigh, true: Colors.light.primary }}
+              thumbColor={Colors.light.surfaceContainerLowest}
             />
-          </Pressable>
-        </View>
-        <Animated.View
-          style={[
-            styles.sheet,
-            {
-              maxHeight: Dimensions.get("window").height * 0.85,
-              transform: [{ translateY: petTranslateY }],
-            },
-          ]}
-        >
-          {Platform.OS === 'ios' ? (
-            <KeyboardAvoidingView
-              behavior="padding"
-              keyboardVerticalOffset={100}
-              style={styles.keyboardAvoid}
-            >
-              <View style={styles.sheetContent}>
-                <View style={styles.handleRow}>
-                  <View style={styles.handle} />
-                  <Pressable onPress={closePetModal} style={styles.closeX}>
-                    <Ionicons name="close" size={22} color={Colors.light.onSurfaceVariant} />
-                  </Pressable>
-                </View>
-                <Text style={styles.sheetTitle}>
-                  {editingPetId ? "Edit Pet" : "Add Pet"}
-                </Text>
+          </View>
 
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  style={styles.scrollArea}
-                >
-                  {/* Name */}
-                  <Text style={styles.fieldLabel}>Name</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={petForm.name}
-                    onChangeText={(t) => setPetForm({ ...petForm, name: t })}
-                    placeholder="Pet name"
-                    placeholderTextColor={Colors.light.onSurfaceVariant}
-                  />
-
-                  {/* Species */}
-                  <Text style={styles.fieldLabel}>Species</Text>
-                  <View style={styles.optionRow}>
-                    {SPECIES_OPTIONS.map((s) => (
-                      <Pressable
-                        key={s}
-                        style={[
-                          styles.optionChip,
-                          petForm.species === s && styles.optionChipActive,
-                        ]}
-                        onPress={() => setPetForm({ ...petForm, species: s })}
-                      >
-                        <Text
-                          style={[
-                            styles.optionChipText,
-                            petForm.species === s && styles.optionChipTextActive,
-                          ]}
-                        >
-                          {s}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-
-                  {/* Breed */}
-                  <Text style={styles.fieldLabel}>Breed (optional)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={petForm.breed}
-                    onChangeText={(t) => setPetForm({ ...petForm, breed: t })}
-                    placeholder="e.g. Labrador, Persian"
-                    placeholderTextColor={Colors.light.onSurfaceVariant}
-                  />
-
-                  {/* Age */}
-                  <Text style={styles.fieldLabel}>Age (months)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={petForm.ageMonths}
-                    onChangeText={(t) =>
-                      setPetForm({
-                        ...petForm,
-                        ageMonths: t.replace(/[^0-9]/g, ""),
-                      })
-                    }
-                    placeholder="e.g. 12"
-                    placeholderTextColor={Colors.light.onSurfaceVariant}
-                    keyboardType="numeric"
-                  />
-
-                  {/* Gender */}
-                  <Text style={styles.fieldLabel}>Gender</Text>
-                  <View style={styles.optionRow}>
-                    {GENDER_OPTIONS.map((g) => (
-                      <Pressable
-                        key={g}
-                        style={[
-                          styles.optionChip,
-                          petForm.gender === g && styles.optionChipActive,
-                        ]}
-                        onPress={() => setPetForm({ ...petForm, gender: g })}
-                      >
-                        <Text
-                          style={[
-                            styles.optionChipText,
-                            petForm.gender === g && styles.optionChipTextActive,
-                          ]}
-                        >
-                          {g === "Male" ? "♂ Male" : "♀ Female"}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-
-                  {/* Vaccination Status */}
-                  <Text style={styles.fieldLabel}>Vaccination Status</Text>
-                  <View style={styles.optionRow}>
-                    {VACCINATION_OPTIONS.map((v) => (
-                      <Pressable
-                        key={v}
-                        style={[
-                          styles.optionChip,
-                          petForm.vaccinationStatus === v &&
-                            styles.optionChipActive,
-                        ]}
-                        onPress={() =>
-                          setPetForm({ ...petForm, vaccinationStatus: v })
-                        }
-                      >
-                        <Text
-                          style={[
-                            styles.optionChipText,
-                            petForm.vaccinationStatus === v &&
-                              styles.optionChipTextActive,
-                          ]}
-                        >
-                          {v === "UpToDate"
-                            ? "Up to Date"
-                            : v === "Partial"
-                              ? "Partial"
-                              : "None"}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-
-                  {/* Medical Conditions */}
-                  <View style={styles.switchRow}>
-                    <Text style={styles.fieldLabel}>Medical Conditions</Text>
-                    <Switch
-                      value={petForm.medicalConditions}
-                      onValueChange={(v) =>
-                        setPetForm({ ...petForm, medicalConditions: v })
-                      }
-                      trackColor={{ false: Colors.light.surfaceContainer, true: Colors.light.primaryContainer }}
-                      thumbColor={petForm.medicalConditions ? Colors.light.onPrimary : Colors.light.onSurfaceVariant}
-                    />
-                  </View>
-
-                  {petForm.medicalConditions && (
-                    <>
-                      <Text style={styles.fieldLabel}>Medical History</Text>
-                      <TextInput
-                        style={[styles.input, styles.textArea]}
-                        value={petForm.medicalHistory}
-                        onChangeText={(t) =>
-                          setPetForm({ ...petForm, medicalHistory: t })
-                        }
-                        placeholder="Describe medical history..."
-                        placeholderTextColor={Colors.light.onSurfaceVariant}
-                        multiline
-                      />
-                    </>
-                  )}
-
-                  <Pressable
-                    style={[
-                      styles.saveBtn,
-                      (!petForm.name.trim() || !petForm.ageMonths || saving) &&
-                        styles.saveBtnDisabled,
-                    ]}
-                    onPress={savePet}
-                    disabled={!petForm.name.trim() || !petForm.ageMonths || saving}
-                  >
-                    {saving ? (
-                      <ActivityIndicator color={Colors.light.onPrimary} />
-                    ) : (
-                      <Text style={styles.saveBtnText}>
-                        {editingPetId ? "Save Changes" : "Add Pet"}
-                      </Text>
-                    )}
-                  </Pressable>
-                </ScrollView>
-              </View>
-            </KeyboardAvoidingView>
-          ) : (
-            <KeyboardAvoidingView
-              behavior="height"
-              keyboardVerticalOffset={0}
-              style={styles.keyboardAvoid}
-            >
-              <View style={styles.sheetContent}>
-                <View style={styles.handleRow}>
-                  <View style={styles.handle} />
-                  <Pressable onPress={closePetModal} style={styles.closeX}>
-                    <Ionicons name="close" size={22} color={Colors.light.onSurfaceVariant} />
-                  </Pressable>
-                </View>
-                <Text style={styles.sheetTitle}>
-                  {editingPetId ? "Edit Pet" : "Add Pet"}
-                </Text>
-
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  style={styles.scrollArea}
-                >
-                  {/* Name */}
-                  <Text style={styles.fieldLabel}>Name</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={petForm.name}
-                    onChangeText={(t) => setPetForm({ ...petForm, name: t })}
-                    placeholder="Pet name"
-                    placeholderTextColor={Colors.light.onSurfaceVariant}
-                  />
-
-                  {/* Species */}
-                  <Text style={styles.fieldLabel}>Species</Text>
-                  <View style={styles.optionRow}>
-                    {SPECIES_OPTIONS.map((s) => (
-                      <Pressable
-                        key={s}
-                        style={[
-                          styles.optionChip,
-                          petForm.species === s && styles.optionChipActive,
-                        ]}
-                        onPress={() => setPetForm({ ...petForm, species: s })}
-                      >
-                        <Text
-                          style={[
-                            styles.optionChipText,
-                            petForm.species === s && styles.optionChipTextActive,
-                          ]}
-                        >
-                          {s}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-
-                  {/* Breed */}
-                  <Text style={styles.fieldLabel}>Breed (optional)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={petForm.breed}
-                    onChangeText={(t) => setPetForm({ ...petForm, breed: t })}
-                    placeholder="e.g. Labrador, Persian"
-                    placeholderTextColor={Colors.light.onSurfaceVariant}
-                  />
-
-                  {/* Age */}
-                  <Text style={styles.fieldLabel}>Age (months)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={petForm.ageMonths}
-                    onChangeText={(t) =>
-                      setPetForm({
-                        ...petForm,
-                        ageMonths: t.replace(/[^0-9]/g, ""),
-                      })
-                    }
-                    placeholder="e.g. 12"
-                    placeholderTextColor={Colors.light.onSurfaceVariant}
-                    keyboardType="numeric"
-                  />
-
-                  {/* Gender */}
-                  <Text style={styles.fieldLabel}>Gender</Text>
-                  <View style={styles.optionRow}>
-                    {GENDER_OPTIONS.map((g) => (
-                      <Pressable
-                        key={g}
-                        style={[
-                          styles.optionChip,
-                          petForm.gender === g && styles.optionChipActive,
-                        ]}
-                        onPress={() => setPetForm({ ...petForm, gender: g })}
-                      >
-                        <Text
-                          style={[
-                            styles.optionChipText,
-                            petForm.gender === g && styles.optionChipTextActive,
-                          ]}
-                        >
-                          {g === "Male" ? "♂ Male" : "♀ Female"}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-
-                  {/* Vaccination Status */}
-                  <Text style={styles.fieldLabel}>Vaccination Status</Text>
-                  <View style={styles.optionRow}>
-                    {VACCINATION_OPTIONS.map((v) => (
-                      <Pressable
-                        key={v}
-                        style={[
-                          styles.optionChip,
-                          petForm.vaccinationStatus === v &&
-                            styles.optionChipActive,
-                        ]}
-                        onPress={() =>
-                          setPetForm({ ...petForm, vaccinationStatus: v })
-                        }
-                      >
-                        <Text
-                          style={[
-                            styles.optionChipText,
-                            petForm.vaccinationStatus === v &&
-                              styles.optionChipTextActive,
-                          ]}
-                        >
-                          {v === "UpToDate"
-                            ? "Up to Date"
-                            : v === "Partial"
-                              ? "Partial"
-                              : "None"}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-
-                  {/* Medical Conditions */}
-                  <View style={styles.switchRow}>
-                    <Text style={styles.fieldLabel}>Medical Conditions</Text>
-                    <Switch
-                      value={petForm.medicalConditions}
-                      onValueChange={(v) =>
-                        setPetForm({ ...petForm, medicalConditions: v })
-                      }
-                      trackColor={{ false: Colors.light.surfaceContainer, true: Colors.light.primaryContainer }}
-                      thumbColor={petForm.medicalConditions ? Colors.light.onPrimary : Colors.light.onSurfaceVariant}
-                    />
-                  </View>
-
-                  {petForm.medicalConditions && (
-                    <>
-                      <Text style={styles.fieldLabel}>Medical History</Text>
-                      <TextInput
-                        style={[styles.input, styles.textArea]}
-                        value={petForm.medicalHistory}
-                        onChangeText={(t) =>
-                          setPetForm({ ...petForm, medicalHistory: t })
-                        }
-                        placeholder="Describe medical history..."
-                        placeholderTextColor={Colors.light.onSurfaceVariant}
-                        multiline
-                      />
-                    </>
-                  )}
-
-                  <Pressable
-                    style={[
-                      styles.saveBtn,
-                      (!petForm.name.trim() || !petForm.ageMonths || saving) &&
-                        styles.saveBtnDisabled,
-                    ]}
-                    onPress={savePet}
-                    disabled={!petForm.name.trim() || !petForm.ageMonths || saving}
-                  >
-                    {saving ? (
-                      <ActivityIndicator color={Colors.light.onPrimary} />
-                    ) : (
-                      <Text style={styles.saveBtnText}>
-                        {editingPetId ? "Save Changes" : "Add Pet"}
-                      </Text>
-                    )}
-                  </Pressable>
-                </ScrollView>
-              </View>
-            </KeyboardAvoidingView>
+          {petForm.medicalConditions && (
+            <>
+              <Text style={styles.fieldLabel}>Medical History</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={petForm.medicalHistory}
+                onChangeText={(t) => setPetForm({ ...petForm, medicalHistory: t })}
+                placeholder="Describe medical history..."
+                placeholderTextColor={Colors.light.outline}
+                multiline
+              />
+            </>
           )}
-        </Animated.View>
-      </Modal>
+
+          <Pressable
+            style={[
+              styles.saveBtn,
+              (!petForm.name.trim() || !petForm.ageMonths || saving) && styles.saveBtnDisabled,
+            ]}
+            onPress={savePet}
+            disabled={!petForm.name.trim() || !petForm.ageMonths || saving}
+          >
+            {saving ? (
+              <ActivityIndicator color={Colors.light.onPrimary} />
+            ) : (
+              <Text style={styles.saveBtnText}>
+                {editingPetId ? "Save Changes" : "Add Pet"}
+              </Text>
+            )}
+          </Pressable>
+        </ScrollView>
+      </BottomSheet>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   title: {
-    color: Colors.light.onSurface,
-    fontSize: 28,
-    fontWeight: "700",
-    letterSpacing: -0.01,
+    ...Typography.displayMd,
+    color: Colors.light.ink,
     marginBottom: 24,
   },
   sectionTitle: {
+    ...Typography.labelCaps,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.02,
     marginBottom: 10,
     marginTop: 4,
   },
@@ -888,19 +446,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
     marginTop: 4,
-  },
-  card: {
-    backgroundColor: Colors.light.surfaceContainerLow,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.light.outlineVariant,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#0c5252",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   infoRow: {
     flexDirection: "row",
@@ -913,18 +458,16 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   infoLabel: {
+    ...Typography.bodySm,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 12,
   },
   infoValue: {
-    color: Colors.light.onSurface,
+    ...Typography.bodyLg,
     fontSize: 16,
-    fontWeight: "500",
+    color: Colors.light.ink,
   },
-  infoSubtext: {
-    color: Colors.light.onSurfaceVariant,
-    fontSize: 13,
-    marginTop: 1,
+  mutedValue: {
+    color: Colors.light.outline,
   },
   divider: {
     height: 1,
@@ -938,19 +481,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: Colors.light.primaryContainer,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.light.primary,
   },
   addPetText: {
     color: Colors.light.onPrimary,
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 12,
+    fontFamily: Fonts.labelBold,
   },
   emptyText: {
+    ...Typography.bodyMd,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 14,
     textAlign: "center",
     marginTop: 20,
     marginBottom: 20,
@@ -959,17 +502,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Colors.light.surfaceContainerLow,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.light.outlineVariant,
-    padding: 14,
     marginBottom: 10,
-    shadowColor: "#0c5252",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   petCardLeft: {
     flexDirection: "row",
@@ -980,7 +513,7 @@ const styles = StyleSheet.create({
   petIcon: {
     width: 42,
     height: 42,
-    borderRadius: 21,
+    borderRadius: Radius.full,
     backgroundColor: Colors.light.primaryContainer,
     alignItems: "center",
     justifyContent: "center",
@@ -990,13 +523,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   petName: {
-    color: Colors.light.onSurface,
-    fontSize: 16,
-    fontWeight: "600",
+    ...Typography.titleMd,
+    color: Colors.light.ink,
   },
   petDetail: {
+    ...Typography.bodySm,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 13,
   },
   petActions: {
     flexDirection: "row",
@@ -1005,68 +537,14 @@ const styles = StyleSheet.create({
   petActionBtn: {
     padding: 8,
   },
-  backdrop: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: Colors.light.surfaceContainerLow,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: Dimensions.get("window").height * 0.85,
-    shadowColor: "#0c5252",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  keyboardAvoid: {
-    flex: 1,
-  },
-  sheetContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 40,
-    maxHeight: Dimensions.get("window").height * 0.65,
-  },
-  handleRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.light.outlineVariant,
-  },
-  closeX: {
-    position: "absolute",
-    right: 0,
-    padding: 4,
-  },
-  sheetTitle: {
-    color: Colors.light.onSurface,
-    fontSize: 20,
-    fontWeight: "700",
-    letterSpacing: -0.01,
-    marginBottom: 20,
-  },
-  scrollArea: {
-    maxHeight: Dimensions.get("window").height * 0.55,
-  },
   input: {
     backgroundColor: Colors.light.surfaceContainerLow,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
     borderColor: Colors.light.outlineVariant,
-    color: Colors.light.onSurface,
+    color: Colors.light.ink,
     fontSize: 16,
+    fontFamily: Fonts.body,
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginBottom: 16,
@@ -1076,9 +554,8 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   fieldLabel: {
+    ...Typography.labelCaps,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 13,
-    fontWeight: "600",
     marginBottom: 8,
   },
   optionRow: {
@@ -1089,20 +566,20 @@ const styles = StyleSheet.create({
   optionChip: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: Radius.md,
     backgroundColor: Colors.light.surfaceContainerLow,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.light.outlineVariant,
     alignItems: "center",
   },
   optionChipActive: {
     borderColor: Colors.light.primary,
-    backgroundColor: Colors.light.primaryContainer,
+    backgroundColor: Colors.light.primary,
   },
   optionChipText: {
+    ...Typography.bodyMd,
+    fontFamily: Fonts.bodyMedium,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 14,
-    fontWeight: "600",
   },
   optionChipTextActive: {
     color: Colors.light.onPrimary,
@@ -1115,25 +592,22 @@ const styles = StyleSheet.create({
   },
   saveBtn: {
     backgroundColor: Colors.light.primary,
-    height: 54,
-    borderRadius: 24,
+    height: 56,
+    borderRadius: Radius.md,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 24,
-    marginBottom: 20,
-    shadowColor: "#0c5252",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
+    marginTop: 8,
+    marginBottom: 4,
   },
   saveBtnDisabled: {
-    backgroundColor: Colors.light.surfaceContainer,
-    opacity: 0.5,
+    backgroundColor: Colors.light.surfaceContainerHigh,
   },
   saveBtnText: {
+    ...Typography.labelCaps,
+    fontSize: 14,
     color: Colors.light.onPrimary,
-    fontSize: 16,
-    fontWeight: "700",
+  },
+  scrollArea: {
+    maxHeight: 520,
   },
 });

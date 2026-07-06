@@ -1,58 +1,68 @@
+/**
+ * The Wouff brand palette — "Boutique Essential" design system.
+ * Warm cream surfaces, off-black ink, periwinkle accent, pastel category tags.
+ */
+const light = {
+  // Surfaces
+  background: "#FFFFF9",
+  onBackground: "#1C1B1B",
+  surface: "#FDF8F8",
+  surfaceDim: "#DDD9D8",
+  surfaceContainerLowest: "#FFFFFF",
+  surfaceContainerLow: "#F7F3F2",
+  surfaceContainer: "#F1EDEC",
+  surfaceContainerHigh: "#EBE7E7",
+  surfaceContainerHighest: "#E5E2E1",
+
+  // Ink / text
+  ink: "#2B2B2B",
+  onSurface: "#1C1B1B",
+  onSurfaceVariant: "#444748",
+  outline: "#747878",
+  outlineVariant: "#DAD6D5",
+
+  // Brand accent — Periwinkle
+  primary: "#7F7FED",
+  onPrimary: "#161717",
+  primaryContainer: "#E4E2FF",
+  onPrimaryContainer: "#302F8C",
+
+  // Secondary — neutral warm gray
+  secondary: "#5D5F5B",
+  onSecondary: "#FFFFFF",
+  secondaryContainer: "#E2E3DD",
+  onSecondaryContainer: "#43453F",
+
+  // Tertiary — deep indigo (used sparingly for depth/dark panels)
+  tertiary: "#161717",
+  onTertiary: "#FFFFFF",
+  tertiaryContainer: "#2B2B2B",
+  onTertiaryContainer: "#E4E2E1",
+
+  // Status
+  error: "#BA1A1A",
+  onError: "#FFFFFF",
+  errorContainer: "#FFDAD6",
+  onErrorContainer: "#93000A",
+  success: "#3E7A4C",
+  onSuccess: "#FFFFFF",
+  successContainer: "#DCF3DE",
+  onSuccessContainer: "#1E4B28",
+  warning: "#8A6D00",
+  onWarning: "#FFFFFF",
+  warningContainer: "#FDF1B8",
+  onWarningContainer: "#4D3C00",
+
+  // Indie pastel accents — category chips, decorative sparkles
+  lilac: "#EFE7FB",
+  onLilac: "#6B46C1",
+  lemon: "#FDF1B8",
+  onLemon: "#8A6D00",
+  lime: "#E3F0CE",
+  onLime: "#4D7A22",
+};
+
 export default {
-  light: {
-    surface: "#fbf9f8",
-    surfaceContainerLow: "#f5f3f3",
-    surfaceContainer: "#efeded",
-    primary: "#0c5252",
-    primaryContainer: "#2d6a6a",
-    onPrimary: "#ffffff",
-    onPrimaryContainer: "#abe8e7",
-    secondary: "#5e5e5b",
-    secondaryContainer: "#e1dfdb",
-    onSecondary: "#ffffff",
-    onSecondaryContainer: "#e1dfdb",
-    tertiary: "#54473b",
-    tertiaryContainer: "#6d5f51",
-    onTertiaryContainer: "#eddac9",
-    background: "#fbf9f8",
-    onBackground: "#1b1c1c",
-    error: "#ba1a1a",
-    errorContainer: "#ffdad6",
-    onError: "#ffffff",
-    onErrorContainer: "#93000a",
-    outline: "#707978",
-    outlineVariant: "#bfc8c8",
-    success: "#2d6a6a",
-    warning: "#b58900",
-    onSurface: "#1b1c1c",
-    onSurfaceVariant: "#3f4848",
-  },
-  dark: {
-    surface: "#1b1c1c",
-    surfaceContainerLow: "#2a2b2b",
-    surfaceContainer: "#303131",
-    primary: "#95d1d1",
-    primaryContainer: "#2d6a6a",
-    onPrimary: "#002020",
-    onPrimaryContainer: "#abe8e7",
-    secondary: "#e4e2dd",
-    secondaryContainer: "#5e5e5b",
-    onSecondary: "#1b1c19",
-    onSecondaryContainer: "#e1dfdb",
-    tertiary: "#eddac9",
-    tertiaryContainer: "#6d5f51",
-    onTertiaryContainer: "#231a0f",
-    background: "#1b1c1c",
-    onBackground: "#fbf9f8",
-    error: "#ffdad6",
-    errorContainer: "#ba1a1a",
-    onError: "#93000a",
-    onErrorContainer: "#ffdad6",
-    outline: "#707978",
-    outlineVariant: "#3f4848",
-    success: "#4ADE80",
-    warning: "#EAB308",
-    onSurface: "#fbf9f8",
-    onSurfaceVariant: "#bfc8c8",
-  },
+  light,
+  dark: light,
 };

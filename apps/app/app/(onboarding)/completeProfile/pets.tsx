@@ -6,13 +6,16 @@ import {
   TextInput,
   StyleSheet,
   Pressable,
-  ScrollView,
   Alert,
 } from "react-native";
 import { Screen } from "@/ui/Screen";
 import { PrimaryButton } from "@/ui/PrimaryButton";
+import { Card } from "@/ui/Card";
+import { WizardStepHeader } from "@/ui/WizardStepHeader";
 import { useProfileWizard, type PetForm } from "@/wizard/ProfileWizard";
 import Colors from "@/constants/Colors";
+import Typography, { Fonts } from "@/constants/Typography";
+import { Radius } from "@/constants/Spacing";
 
 const SPECIES = ["Dog", "Cat"] as const;
 const GENDERS = ["Male", "Female"] as const;
@@ -33,17 +36,9 @@ function SegmentedControl<T extends string>({
         <Pressable
           key={opt}
           onPress={() => onChange(opt)}
-          style={[
-            styles.segOption,
-            value === opt && styles.segActive,
-          ]}
+          style={[styles.segOption, value === opt && styles.segActive]}
         >
-          <Text
-            style={[
-              styles.segText,
-              value === opt && styles.segTextActive,
-            ]}
-          >
+          <Text style={[styles.segText, value === opt && styles.segTextActive]}>
             {opt}
           </Text>
         </Pressable>
@@ -66,7 +61,7 @@ function PetCard({
   const update = (partial: Partial<PetForm>) => onChange({ ...pet, ...partial });
 
   return (
-    <View style={styles.petCard}>
+    <Card style={styles.petCard}>
       <View style={styles.petHeader}>
         <Text style={styles.petTitle}>Pet {index + 1}</Text>
         <Pressable onPress={onRemove}>
@@ -78,7 +73,7 @@ function PetCard({
       <TextInput
         style={styles.input}
         placeholder="Pet name"
-        placeholderTextColor={Colors.light.onSurfaceVariant}
+        placeholderTextColor={Colors.light.outline}
         value={pet.name}
         onChangeText={(v) => update({ name: v })}
       />
@@ -94,7 +89,7 @@ function PetCard({
       <TextInput
         style={styles.input}
         placeholder="e.g. Golden Retriever"
-        placeholderTextColor={Colors.light.onSurfaceVariant}
+        placeholderTextColor={Colors.light.outline}
         value={pet.breed}
         onChangeText={(v) => update({ breed: v })}
       />
@@ -103,7 +98,7 @@ function PetCard({
       <TextInput
         style={styles.input}
         placeholder="e.g. 12"
-        placeholderTextColor={Colors.light.onSurfaceVariant}
+        placeholderTextColor={Colors.light.outline}
         keyboardType="number-pad"
         value={pet.ageMonths}
         onChangeText={(v) => update({ ageMonths: v })}
@@ -127,10 +122,7 @@ function PetCard({
         <Text style={styles.fieldLabel}>Medical conditions</Text>
         <Pressable
           onPress={() => update({ medicalConditions: !pet.medicalConditions })}
-          style={[
-            styles.toggle,
-            pet.medicalConditions && styles.toggleActive,
-          ]}
+          style={[styles.toggle, pet.medicalConditions && styles.toggleActive]}
         >
           <Text
             style={[
@@ -149,14 +141,14 @@ function PetCard({
           <TextInput
             style={[styles.input, styles.multiline]}
             placeholder="Describe any conditions..."
-            placeholderTextColor={Colors.light.onSurfaceVariant}
+            placeholderTextColor={Colors.light.outline}
             multiline
             value={pet.medicalHistory}
             onChangeText={(v) => update({ medicalHistory: v })}
           />
         </>
       )}
-    </View>
+    </Card>
   );
 }
 
@@ -183,86 +175,42 @@ export default function PetsScreen() {
   };
 
   return (
-    <Screen>
-      <ScrollView>
-        <View style={styles.container}>
-          <Text style={styles.step}>Step 2 of 3</Text>
-          <Text style={styles.title}>Your pets</Text>
-          <Text style={styles.subtitle}>
-            Add details about each pet you'd like to register.
-          </Text>
+    <Screen scroll>
+      <WizardStepHeader
+        step={2}
+        total={3}
+        title="Your Pets"
+        subtitle="Add details about each pet you'd like to register."
+      />
 
-          {data.pets.map((pet, i) => (
-            <PetCard
-              key={i}
-              pet={pet}
-              index={i}
-              onChange={(p) => updatePet(i, p)}
-              onRemove={() => removePet(i)}
-            />
-          ))}
+      {data.pets.map((pet, i) => (
+        <PetCard
+          key={i}
+          pet={pet}
+          index={i}
+          onChange={(p) => updatePet(i, p)}
+          onRemove={() => removePet(i)}
+        />
+      ))}
 
-          <Pressable style={styles.addBtn} onPress={addPet}>
-            <Text style={styles.addBtnText}>
-              {data.pets.length === 0
-                ? "+ Add a pet"
-                : "+ Add another pet"}
-            </Text>
-          </Pressable>
+      <Pressable style={styles.addBtn} onPress={addPet}>
+        <Text style={styles.addBtnText}>
+          {data.pets.length === 0 ? "+ Add a pet" : "+ Add another pet"}
+        </Text>
+      </Pressable>
 
-          {data.pets.length > 0 && (
-            <PrimaryButton title="Next" onPress={onNext} />
-          )}
+      {data.pets.length > 0 && <PrimaryButton title="Next" onPress={onNext} />}
 
-          <Pressable
-            onPress={() => router.back()}
-            style={styles.backWrap}
-          >
-            <Text style={styles.backText}>Back</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+      <Pressable onPress={() => router.back()} style={styles.backWrap}>
+        <Text style={styles.backText}>Back</Text>
+      </Pressable>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 24,
-  },
-  step: {
-    color: Colors.light.onSurfaceVariant,
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.02,
-    marginBottom: 4,
-    textTransform: "uppercase",
-  },
-  title: {
-    color: Colors.light.onSurface,
-    fontSize: 30,
-    fontWeight: "700",
-    letterSpacing: -0.01,
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: Colors.light.onSurfaceVariant,
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 20,
-  },
   petCard: {
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: Colors.light.surfaceContainerLow,
-    borderWidth: 1,
-    borderColor: Colors.light.outlineVariant,
     marginBottom: 16,
-    shadowColor: "#0c5252",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   petHeader: {
     flexDirection: "row",
@@ -271,30 +219,33 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   petTitle: {
-    color: Colors.light.onSurface,
-    fontSize: 17,
-    fontWeight: "700",
+    ...Typography.headlineMd,
+    color: Colors.light.ink,
   },
   removeText: {
     color: Colors.light.error,
     fontSize: 14,
+    fontFamily: Typography.bodyMd.fontFamily,
   },
   fieldLabel: {
     color: Colors.light.onSurfaceVariant,
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: Typography.labelCaps.fontFamily,
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
     marginBottom: 8,
     marginTop: 8,
   },
   input: {
-    height: 56,
-    borderRadius: 12,
-    borderWidth: 1,
+    height: 52,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
     borderColor: Colors.light.outlineVariant,
-    backgroundColor: Colors.light.surfaceContainerLow,
-    color: Colors.light.onSurface,
+    backgroundColor: Colors.light.surfaceContainerLowest,
+    color: Colors.light.ink,
     paddingHorizontal: 16,
     fontSize: 16,
-    paddingVertical: 16,
+    fontFamily: Typography.bodyMd.fontFamily,
   },
   multiline: {
     height: 80,
@@ -302,25 +253,25 @@ const styles = StyleSheet.create({
   },
   segRow: {
     flexDirection: "row",
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
     borderColor: Colors.light.outlineVariant,
     overflow: "hidden",
   },
   segOption: {
     flex: 1,
-    height: 48,
+    height: 46,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Colors.light.surfaceContainerLow,
+    backgroundColor: Colors.light.surfaceContainerLowest,
   },
   segActive: {
-    backgroundColor: Colors.light.primaryContainer,
+    backgroundColor: Colors.light.primary,
   },
   segText: {
     color: Colors.light.onSurfaceVariant,
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: Fonts.bodyMedium,
   },
   segTextActive: {
     color: Colors.light.onPrimary,
@@ -334,9 +285,9 @@ const styles = StyleSheet.create({
   toggle: {
     paddingHorizontal: 20,
     height: 40,
-    borderRadius: 12,
-    backgroundColor: Colors.light.surfaceContainerLow,
-    borderWidth: 1,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.light.surfaceContainerLowest,
+    borderWidth: 1.5,
     borderColor: Colors.light.outlineVariant,
     alignItems: "center",
     justifyContent: "center",
@@ -347,17 +298,17 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     color: Colors.light.onSurfaceVariant,
-    fontWeight: "600",
     fontSize: 14,
+    fontFamily: Fonts.bodyMedium,
   },
   toggleTextActive: {
-    color: Colors.light.onPrimary,
+    color: Colors.light.onPrimaryContainer,
   },
   addBtn: {
     height: 54,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.light.outlineVariant,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    borderColor: Colors.light.outline,
     borderStyle: "dashed",
     alignItems: "center",
     justifyContent: "center",
@@ -366,7 +317,7 @@ const styles = StyleSheet.create({
   addBtnText: {
     color: Colors.light.primary,
     fontSize: 15,
-    fontWeight: "600",
+    fontFamily: Fonts.bodyMedium,
   },
   backWrap: {
     marginTop: 18,
@@ -375,5 +326,6 @@ const styles = StyleSheet.create({
   backText: {
     color: Colors.light.onSurfaceVariant,
     fontSize: 14,
+    fontFamily: Typography.bodyMd.fontFamily,
   },
 });

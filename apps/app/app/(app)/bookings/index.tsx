@@ -1,26 +1,17 @@
 import React from "react";
-import {
-  Text,
-  View,
-  StyleSheet,
-  FlatList,
-  ActivityIndicator,
-  Pressable,
-} from "react-native";
+import { Text, View, StyleSheet, FlatList, ActivityIndicator, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/auth/useAuth";
 import { Screen } from "@/ui/Screen";
-import { Ionicons } from "@expo/vector-icons";
-import { getBookings } from "@/lib/api";
-import Colors from "@/constants/Colors";
 import { StatusBadge } from "@/ui/StatusBadge";
-
-const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  Bathing: "water",
-  Cutting: "cut",
-  Hygiene: "shield-checkmark",
-};
+import { ServiceIcons } from "@/components/icons/ServiceIcons";
+import { GroupSummaryCard } from "@/components/bulk-booking/GroupSummaryCard";
+import { getBookings, type Booking } from "@/lib/api";
+import Colors from "@/constants/Colors";
+import Typography, { Fonts } from "@/constants/Typography";
+import { Radius, Spacing } from "@/constants/Spacing";
+import { getServiceAccent } from "@/constants/ServiceAccents";
 
 export default function BookingsScreen() {
   const { accessToken } = useAuth();
@@ -37,68 +28,99 @@ export default function BookingsScreen() {
     enabled: !!accessToken,
   });
 
+  const ungroupedBookings = bookings.filter((b) => !b.groupId);
+  const groups = new Map<string, Booking[]>();
+  for (const booking of bookings) {
+    if (!booking.groupId) continue;
+    const list = groups.get(booking.groupId) ?? [];
+    list.push(booking);
+    groups.set(booking.groupId, list);
+  }
+
   return (
     <Screen>
       <Text style={styles.title}>Bookings</Text>
 
       {isLoading ? (
-        <ActivityIndicator color="#FFFFFF" style={{ marginTop: 40 }} />
+        <ActivityIndicator color={Colors.light.primary} style={{ marginTop: 40 }} />
       ) : bookings.length === 0 ? (
         <Text style={styles.empty}>No bookings yet.</Text>
       ) : (
         <FlatList
-          data={bookings}
+          data={ungroupedBookings}
           keyExtractor={(b) => b.id}
           contentContainerStyle={{ paddingBottom: 24 }}
           refreshing={isRefetching}
           onRefresh={refetch}
-          renderItem={({ item }) => (
-            <Pressable
-              style={styles.card}
-              onPress={() => router.push(`/bookings/${item.id}` as any)}
-            >
-              <View style={styles.cardLeft}>
-                <View style={styles.iconWrap}>
-                  <Ionicons
-                    name={SERVICE_ICONS[item.service] || "ellipse"}
-                    size={24}
-                    color="#FFFFFF"
+          ListHeaderComponent={
+            groups.size > 0 ? (
+              <View style={styles.groupsSection}>
+                <Text style={styles.groupsTitle}>Multi-day bookings</Text>
+                {[...groups.entries()].map(([groupId, groupBookings]) => (
+                  <GroupSummaryCard
+                    key={groupId}
+                    bookings={groupBookings}
+                    onPress={() => router.push(`/bookings/group/${groupId}` as any)}
                   />
-                </View>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.serviceName} numberOfLines={1}>{item.service}</Text>
-                  <Text style={styles.petName} numberOfLines={1}>{item.pet?.name}</Text>
-                  <Text style={styles.date} numberOfLines={1}>
-                    {item.location?.label}
-                  </Text>
-                </View>
+                ))}
               </View>
-              <View style={styles.badgeColumn}>
-                <View
-                  style={[
-                    styles.badge,
-                    {
-                      backgroundColor:
-                        item.type === "Instant" ? Colors.light.primaryContainer : Colors.light.surfaceContainer,
-                    },
-                  ]}
-                >
-                  <Text
+            ) : null
+          }
+          renderItem={({ item }) => {
+            const Icon = ServiceIcons[item.service] ?? ServiceIcons.Bathing;
+            const accent = getServiceAccent(item.service);
+            return (
+              <Pressable
+                style={styles.card}
+                onPress={() => router.push(`/bookings/${item.id}` as any)}
+              >
+                <View style={styles.cardLeft}>
+                  <View style={[styles.iconWrap, { backgroundColor: accent.bg }]}>
+                    <Icon size={22} color={accent.fg} strokeWidth={1.6} />
+                  </View>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.serviceName} numberOfLines={1}>
+                      {item.service}
+                    </Text>
+                    <Text style={styles.petName} numberOfLines={1}>
+                      {item.pet?.name}
+                    </Text>
+                    <Text style={styles.date} numberOfLines={1}>
+                      {item.location?.label}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.badgeColumn}>
+                  <View
                     style={[
-                      styles.badgeText,
+                      styles.badge,
                       {
-                        color:
-                          item.type === "Instant" ? Colors.light.onPrimary : Colors.light.warning,
+                        backgroundColor:
+                          item.type === "Instant"
+                            ? Colors.light.primaryContainer
+                            : Colors.light.lemon,
                       },
                     ]}
                   >
-                    {item.type}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.badgeText,
+                        {
+                          color:
+                            item.type === "Instant"
+                              ? Colors.light.onPrimaryContainer
+                              : Colors.light.onLemon,
+                        },
+                      ]}
+                    >
+                      {item.type}
+                    </Text>
+                  </View>
+                  <StatusBadge status={item.status} />
                 </View>
-                <StatusBadge status={item.status} />
-              </View>
-            </Pressable>
-          )}
+              </Pressable>
+            );
+          }}
         />
       )}
     </Screen>
@@ -107,33 +129,34 @@ export default function BookingsScreen() {
 
 const styles = StyleSheet.create({
   title: {
-    color: Colors.light.onSurface,
-    fontSize: 28,
-    fontWeight: "700",
-    letterSpacing: -0.01,
+    ...Typography.displayMd,
+    color: Colors.light.ink,
     marginBottom: 20,
   },
   empty: {
+    ...Typography.bodyMd,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 15,
     textAlign: "center",
     marginTop: 40,
+  },
+  groupsSection: {
+    marginBottom: Spacing.md,
+  },
+  groupsTitle: {
+    ...Typography.labelCaps,
+    color: Colors.light.onSurfaceVariant,
+    marginBottom: Spacing.sm,
   },
   card: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Colors.light.surfaceContainerLow,
-    borderRadius: 16,
-    borderWidth: 1,
+    backgroundColor: Colors.light.surfaceContainerLowest,
+    borderRadius: Radius.lg,
+    borderWidth: 1.5,
     borderColor: Colors.light.outlineVariant,
     padding: 16,
     marginBottom: 12,
-    shadowColor: "#0c5252",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   cardLeft: {
     flexDirection: "row",
@@ -145,8 +168,7 @@ const styles = StyleSheet.create({
   iconWrap: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.light.primaryContainer,
+    borderRadius: Radius.full,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -156,17 +178,17 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   serviceName: {
-    color: Colors.light.onSurface,
-    fontSize: 16,
-    fontWeight: "600",
+    ...Typography.titleMd,
+    color: Colors.light.ink,
   },
   petName: {
+    ...Typography.bodySm,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 13,
   },
   date: {
-    color: Colors.light.onSurfaceVariant,
+    ...Typography.bodySm,
     fontSize: 12,
+    color: Colors.light.onSurfaceVariant,
     marginTop: 2,
   },
   badgeColumn: {
@@ -176,10 +198,11 @@ const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
   },
   badgeText: {
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 11,
+    fontFamily: Fonts.labelBold,
+    letterSpacing: 0.3,
   },
 });

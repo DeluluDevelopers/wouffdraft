@@ -1,27 +1,14 @@
 import { Redirect, Tabs } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "@/auth/useAuth";
-import Colors from "@/constants/Colors";
 import { StatusBar } from "react-native";
+import { useAuth } from "@/auth/useAuth";
+import { LoadingScreen } from "@/ui/LoadingScreen";
+import { HomeIcon, CalendarIcon, ProfileTabIcon } from "@/components/icons/NavIcons";
+import Colors from "@/constants/Colors";
 
 export default function AppLayout() {
   const { isHydrating, isAuthenticated, profileCompleted } = useAuth();
 
-  if (isHydrating) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: Colors.light.surface,
-        }}
-      >
-        <ActivityIndicator color={Colors.light.primary} />
-      </View>
-    );
-  }
+  if (isHydrating) return <LoadingScreen />;
 
   if (!isAuthenticated) return <Redirect href="/(auth)/login" />;
   if (!profileCompleted)
@@ -29,50 +16,39 @@ export default function AppLayout() {
 
   return (
     <>
-      <StatusBar barStyle={"dark-content"} />
+      <StatusBar barStyle="dark-content" />
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: Colors.light.surfaceContainerLow,
+            backgroundColor: Colors.light.surfaceContainerLowest,
             borderTopColor: Colors.light.outlineVariant,
-            borderTopWidth: 1,
+            borderTopWidth: 1.5,
             height: 70,
             paddingBottom: 12,
-            paddingTop: 8,
-            shadowColor: "#0c5252",
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 10,
-            elevation: 8,
+            paddingTop: 10,
           },
           tabBarActiveTintColor: Colors.light.primary,
-          tabBarInactiveTintColor: Colors.light.onSurfaceVariant,
+          tabBarInactiveTintColor: Colors.light.outline,
           tabBarShowLabel: false,
         }}
       >
         <Tabs.Screen
           name="home"
           options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="home" size={size} color={color} />
-            ),
+            tabBarIcon: ({ color, size }) => <HomeIcon size={size} color={color as string} />,
           }}
         />
         <Tabs.Screen
           name="bookings"
           options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="calendar" size={size} color={color} />
-            ),
+            tabBarIcon: ({ color, size }) => <CalendarIcon size={size} color={color as string} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person" size={size} color={color} />
-            ),
+            tabBarIcon: ({ color, size }) => <ProfileTabIcon size={size} color={color as string} />,
           }}
         />
       </Tabs>

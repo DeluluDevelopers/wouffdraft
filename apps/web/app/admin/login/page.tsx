@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
@@ -37,7 +38,10 @@ export default function AdminLoginPage() {
   return (
     <div className="admin-login-wrap">
       <form className="admin-login-card" onSubmit={handleSubmit}>
-        <div className="admin-login-title">Woff Admin</div>
+        <div className="admin-login-brand">
+          <Image src="/brand/wouff-mark.png" alt="The Wouff" width={56} height={56} />
+        </div>
+        <div className="admin-login-title">The Wouff Admin</div>
         <div className="admin-login-subtitle">
           Sign in to manage users and bookings
         </div>

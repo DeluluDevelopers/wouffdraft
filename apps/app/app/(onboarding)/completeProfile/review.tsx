@@ -1,12 +1,15 @@
 import React from "react";
 import { useRouter } from "expo-router";
-import { Alert, Text, View, StyleSheet, ScrollView, Pressable } from "react-native";
+import { Alert, Text, View, StyleSheet, Pressable } from "react-native";
 import { useMutation } from "@tanstack/react-query";
 import { Screen } from "@/ui/Screen";
 import { PrimaryButton } from "@/ui/PrimaryButton";
+import { Card } from "@/ui/Card";
+import { WizardStepHeader } from "@/ui/WizardStepHeader";
 import { useAuth } from "@/auth/useAuth";
 import { useProfileWizard } from "@/wizard/ProfileWizard";
 import Colors from "@/constants/Colors";
+import Typography from "@/constants/Typography";
 
 export default function ReviewScreen() {
   const router = useRouter();
@@ -46,54 +49,47 @@ export default function ReviewScreen() {
   const onSubmit = () => mutation.mutate();
 
   return (
-    <Screen>
-      <ScrollView>
-        <View style={styles.container}>
-          <Text style={styles.step}>Step 3 of 3</Text>
-          <Text style={styles.title}>Review</Text>
-          <Text style={styles.subtitle}>
-            Check everything looks right before saving.
-          </Text>
+    <Screen scroll>
+      <WizardStepHeader
+        step={3}
+        total={3}
+        title="Review"
+        subtitle="Check everything looks right before saving."
+      />
 
-          <Section title="Personal info">
-            <Row label="Name" value={data.name} />
-          </Section>
+      <Section title="Personal info">
+        <Row label="Name" value={data.name} />
+      </Section>
 
-          <Section title="Address">
-            <Row label="Label" value={data.label} />
-          </Section>
+      <Section title="Address">
+        <Row label="Label" value={data.label} />
+      </Section>
 
-          <Section title={`Pets (${data.pets.length})`}>
-            {data.pets.map((pet, i) => (
-              <View key={i} style={styles.petSummary}>
-                <Text style={styles.petName}>
-                  {pet.name || `Pet ${i + 1}`}
-                </Text>
-                <Text style={styles.petDetail}>
-                  {pet.species} &middot; {pet.gender} &middot; {pet.ageMonths || "?"} months
-                </Text>
-                <Text style={styles.petDetail}>
-                  Vaccination: {pet.vaccinationStatus}
-                  {pet.medicalConditions ? " · Has medical conditions" : ""}
-                </Text>
-              </View>
-            ))}
-          </Section>
+      <Section title={`Pets (${data.pets.length})`}>
+        {data.pets.map((pet, i) => (
+          <Card key={i} style={styles.petSummary}>
+            <Text style={styles.petName}>{pet.name || `Pet ${i + 1}`}</Text>
+            <Text style={styles.petDetail}>
+              {pet.species} &middot; {pet.gender} &middot;{" "}
+              {pet.ageMonths || "?"} months
+            </Text>
+            <Text style={styles.petDetail}>
+              Vaccination: {pet.vaccinationStatus}
+              {pet.medicalConditions ? " · Has medical conditions" : ""}
+            </Text>
+          </Card>
+        ))}
+      </Section>
 
-          <PrimaryButton
-            title="Save profile"
-            onPress={onSubmit}
-            loading={mutation.isPending}
-          />
+      <PrimaryButton
+        title="Save profile"
+        onPress={onSubmit}
+        loading={mutation.isPending}
+      />
 
-          <Pressable
-            onPress={() => router.back()}
-            style={styles.backWrap}
-          >
-            <Text style={styles.backText}>Back</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+      <Pressable onPress={() => router.back()} style={styles.backWrap}>
+        <Text style={styles.backText}>Back</Text>
+      </Pressable>
     </Screen>
   );
 }
@@ -123,39 +119,12 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 24,
-  },
-  step: {
-    color: Colors.light.onSurfaceVariant,
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.02,
-    marginBottom: 4,
-    textTransform: "uppercase",
-  },
-  title: {
-    color: Colors.light.onSurface,
-    fontSize: 30,
-    fontWeight: "700",
-    letterSpacing: -0.01,
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: Colors.light.onSurfaceVariant,
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 20,
-  },
   section: {
     marginBottom: 20,
   },
   sectionTitle: {
-    color: Colors.light.onSurfaceVariant,
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 0.02,
-    textTransform: "uppercase",
+    ...Typography.labelCaps,
+    color: Colors.light.primary,
     marginBottom: 10,
   },
   row: {
@@ -166,42 +135,32 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.light.outlineVariant,
   },
   rowLabel: {
+    ...Typography.bodyMd,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 14,
   },
   rowValue: {
-    color: Colors.light.onSurface,
-    fontSize: 14,
-    fontWeight: "600",
+    ...Typography.bodyMd,
+    fontFamily: Typography.headlineMd.fontFamily,
+    color: Colors.light.ink,
   },
   petSummary: {
-    padding: 12,
-    borderRadius: 14,
-    backgroundColor: Colors.light.surfaceContainerLow,
     marginBottom: 8,
-    shadowColor: "#0c5252",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   petName: {
-    color: Colors.light.onSurface,
-    fontSize: 16,
-    fontWeight: "700",
+    ...Typography.headlineMd,
+    color: Colors.light.ink,
     marginBottom: 4,
   },
   petDetail: {
+    ...Typography.bodySm,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 13,
-    lineHeight: 18,
   },
   backWrap: {
     marginTop: 18,
     alignItems: "center",
   },
   backText: {
+    ...Typography.bodyMd,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 14,
   },
 });

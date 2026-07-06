@@ -22,6 +22,14 @@ const bookingInclude = {
   pet: true,
   location: true,
   user: { select: { id: true, name: true, phoneNumber: true, email: true } },
+  group: {
+    include: {
+      bookings: {
+        select: { id: true, scheduledAt: true, status: true, service: true },
+        orderBy: { scheduledAt: "asc" },
+      },
+    },
+  },
 } as const;
 
 export const GET = apiHandler(async (req: NextRequest) => {

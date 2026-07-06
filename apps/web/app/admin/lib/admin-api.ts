@@ -30,6 +30,15 @@ export type AdminLocation = {
   address: string;
 };
 
+export type AdminBookingGroupSummary = { id: string; dayCount: number };
+
+export type AdminBookingGroupSibling = {
+  id: string;
+  scheduledAt: string | null;
+  status: string;
+  service: string;
+};
+
 export type AdminBooking = {
   id: string;
   userId: string;
@@ -43,6 +52,17 @@ export type AdminBooking = {
   pet: { id: string; name: string; species: string } | null;
   location: { id: string; label: string; address: string } | null;
   user?: { id: string; name: string | null; phoneNumber: string; email: string | null };
+  group?: (AdminBookingGroupSummary & { bookings?: AdminBookingGroupSibling[] }) | null;
+};
+
+export type AdminServiceOption = {
+  id: string;
+  service: string;
+  durationMinutes: number;
+  label: string;
+  priceInRupees: number;
+  sortOrder: number;
+  isActive: boolean;
 };
 
 export type AdminUserDetail = {
@@ -122,5 +142,39 @@ export function updateBookingStatus(
   return request<AdminBooking>(`/api/v1/admin/bookings/${id}`, {
     method: "PATCH",
     body: JSON.stringify({ status, cancellationReason }),
+  });
+}
+
+export function getServiceOptions() {
+  return request<AdminServiceOption[]>("/api/v1/admin/service-options");
+}
+
+export type CreateServiceOptionPayload = {
+  service: string;
+  durationMinutes: number;
+  label: string;
+  priceInRupees: number;
+  sortOrder?: number;
+};
+
+export function createServiceOption(payload: CreateServiceOptionPayload) {
+  return request<AdminServiceOption>("/api/v1/admin/service-options", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export type UpdateServiceOptionPayload = Partial<{
+  label: string;
+  priceInRupees: number;
+  durationMinutes: number;
+  sortOrder: number;
+  isActive: boolean;
+}>;
+
+export function updateServiceOption(id: string, payload: UpdateServiceOptionPayload) {
+  return request<AdminServiceOption>(`/api/v1/admin/service-options/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
   });
 }

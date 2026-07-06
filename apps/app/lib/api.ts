@@ -117,6 +117,15 @@ export async function completeProfile(
   return res.data;
 }
 
+export type ServiceName =
+  | "Bathing"
+  | "Cutting"
+  | "Hygiene"
+  | "BlowDry"
+  | "NailTrim"
+  | "Spa"
+  | "Cleaning";
+
 export type Booking = {
   id: string;
   userId: string;
@@ -124,14 +133,56 @@ export type Booking = {
   pet: PetProfile;
   locationId: string;
   location: LocationProfile;
-  service: "Bathing" | "Cutting" | "Hygiene" | "BlowDry" | "NailTrim" | "Spa" | "Cleaning";
+  service: ServiceName;
   type: "Instant" | "Scheduled";
   status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
   cancellationReason: string | null;
   scheduledAt: string | null;
+  groupId: string | null;
+  durationMinutes: number | null;
+  priceInRupees: number | null;
   createdAt: string;
   updatedAt: string;
 };
+
+export type ServiceOption = {
+  id: string;
+  service: ServiceName;
+  durationMinutes: number;
+  label: string;
+  priceInRupees: number;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type BookingGroup = {
+  id: string;
+  userId: string;
+  petId: string;
+  pet: PetProfile;
+  locationId: string;
+  location: LocationProfile;
+  totalPriceInRupees: number;
+  dayCount: number;
+  bookings: Booking[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateBulkBookingPayload = {
+  petId: string;
+  locationId: string;
+  days: Array<{
+    scheduledAt: string;
+    service: ServiceName;
+    serviceOptionId: string;
+  }>;
+};
+
+// Statuses a booking can still be mutated from — mirrors
+// apps/web/app/lib/booking-status.ts's ALLOWED_TRANSITIONS (kept in sync by
+// hand since apps/app has no shared package bridging it to apps/web).
+export const MUTABLE_BOOKING_STATUSES = ["PENDING", "CONFIRMED"] as const;
 
 export type CreateBookingPayload = {
   petId: string;
@@ -166,6 +217,56 @@ export async function getBooking(accessToken: string, id: string) {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   return res.data.data as Booking;
+}
+
+export async function cancelBooking(
+  accessToken: string,
+  id: string,
+  cancellationReason: string,
+) {
+  const res = await api.patch(
+    `/bookings/${id}`,
+    { action: "cancel", cancellationReason },
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
+  return res.data.data as Booking;
+}
+
+export async function rescheduleBooking(
+  accessToken: string,
+  id: string,
+  scheduledAt: string,
+) {
+  const res = await api.patch(
+    `/bookings/${id}`,
+    { action: "reschedule", scheduledAt },
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
+  return res.data.data as Booking;
+}
+
+export async function getServiceOptions(accessToken: string) {
+  const res = await api.get("/service-options", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data as ServiceOption[];
+}
+
+export async function createBulkBooking(
+  accessToken: string,
+  payload: CreateBulkBookingPayload,
+) {
+  const res = await api.post("/bookings/bulk", payload, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data as { group: BookingGroup; bookings: Booking[] };
+}
+
+export async function getBookingGroup(accessToken: string, id: string) {
+  const res = await api.get(`/booking-groups/${id}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  return res.data.data as BookingGroup;
 }
 
 export async function searchAddress(input: string) {

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getStats } from "@/admin/lib/admin-api";
 import { StatGridSkeleton } from "@/admin/components/Skeletons";
+import { UsersIcon, PawIcon, BookingsIcon } from "@/admin/components/icons";
 
 export default function AdminOverviewPage() {
   const { data: stats, isLoading, isError } = useQuery({
@@ -28,14 +29,23 @@ export default function AdminOverviewPage() {
       ) : (
         <div className="admin-stat-grid">
           <div className="admin-stat-card">
+            <div className="admin-stat-icon">
+              <UsersIcon size={18} />
+            </div>
             <div className="admin-stat-value">{stats!.userCount}</div>
             <div className="admin-stat-label">Total users</div>
           </div>
           <div className="admin-stat-card">
+            <div className="admin-stat-icon admin-stat-icon-lilac">
+              <PawIcon size={18} />
+            </div>
             <div className="admin-stat-value">{stats!.petCount}</div>
             <div className="admin-stat-label">Total pets</div>
           </div>
           <div className="admin-stat-card">
+            <div className="admin-stat-icon admin-stat-icon-lime">
+              <BookingsIcon size={18} />
+            </div>
             <div className="admin-stat-value">{stats!.bookingCount}</div>
             <div className="admin-stat-label">Total bookings</div>
           </div>

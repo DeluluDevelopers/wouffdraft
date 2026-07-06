@@ -11,9 +11,12 @@ import {
 import { Screen } from "@/ui/Screen";
 import { TextField } from "@/ui/TextField";
 import { PrimaryButton } from "@/ui/PrimaryButton";
+import { WizardStepHeader } from "@/ui/WizardStepHeader";
 import { useProfileWizard } from "@/wizard/ProfileWizard";
 import { searchAddress, type AddressPrediction } from "@/lib/api";
 import Colors from "@/constants/Colors";
+import Typography from "@/constants/Typography";
+import { Radius } from "@/constants/Spacing";
 
 export default function AddressScreen() {
   const router = useRouter();
@@ -63,119 +66,91 @@ export default function AddressScreen() {
   const isValid = data.name.trim().length > 0 && selected !== null;
 
   return (
-    <Screen>
-      <View style={styles.container}>
-        <Text style={styles.step}>Step 1 of 3</Text>
-        <Text style={styles.title}>Your info</Text>
-        <Text style={styles.subtitle}>
-          Tell us your name and where you're located.
-        </Text>
+    <Screen scroll>
+      <WizardStepHeader
+        step={1}
+        total={3}
+        title="Your Info"
+        subtitle="Tell us your name and where you're located."
+      />
 
-        <TextField
-          label="Full name"
-          placeholder="Your name"
-          value={data.name}
-          onChangeText={setName}
+      <TextField
+        label="Full name"
+        placeholder="Your name"
+        value={data.name}
+        onChangeText={setName}
+      />
+
+      <View style={styles.fieldWrap}>
+        <Text style={styles.label}>Address</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Search your address..."
+          placeholderTextColor={Colors.light.outline}
+          value={query}
+          onChangeText={onSearch}
         />
-
-        <View style={styles.fieldWrap}>
-          <Text style={styles.label}>Address</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Search your address..."
-            placeholderTextColor={Colors.light.onSurfaceVariant}
-            value={query}
-            onChangeText={onSearch}
+        {searching && <Text style={styles.hint}>Searching...</Text>}
+        {predictions.length > 0 && (
+          <FlatList
+            data={predictions}
+            keyExtractor={(item) => item.placeId}
+            style={styles.dropdown}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.dropdownItem}
+                onPress={() => onSelect(item)}
+              >
+                <Text style={styles.dropdownText}>{item.description}</Text>
+              </TouchableOpacity>
+            )}
           />
-          {searching && (
-            <Text style={styles.hint}>Searching...</Text>
-          )}
-          {predictions.length > 0 && (
-            <FlatList
-              data={predictions}
-              keyExtractor={(item) => item.placeId}
-              style={styles.dropdown}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.dropdownItem}
-                  onPress={() => onSelect(item)}
-                >
-                  <Text style={styles.dropdownText}>{item.description}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          )}
-          {selected && (
-            <Text style={styles.selectedText}>{selected.description}</Text>
-          )}
-        </View>
-
-        <PrimaryButton
-          title="Next"
-          onPress={onNext}
-          disabled={!isValid}
-        />
+        )}
+        {selected && (
+          <Text style={styles.selectedText}>{selected.description}</Text>
+        )}
       </View>
+
+      <PrimaryButton title="Next" onPress={onNext} disabled={!isValid} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 24,
-  },
-  step: {
-    color: Colors.light.onSurfaceVariant,
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.02,
-    marginBottom: 4,
-    textTransform: "uppercase",
-  },
-  title: {
-    color: Colors.light.onSurface,
-    fontSize: 30,
-    fontWeight: "700",
-    letterSpacing: -0.01,
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: Colors.light.onSurfaceVariant,
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 20,
-  },
   fieldWrap: {
     marginBottom: 20,
   },
   label: {
     color: Colors.light.onSurfaceVariant,
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 12,
+    fontFamily: Typography.labelCaps.fontFamily,
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
     marginBottom: 8,
   },
   input: {
     height: 56,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
     borderColor: Colors.light.outlineVariant,
-    backgroundColor: Colors.light.surfaceContainerLow,
-    color: Colors.light.onSurface,
+    backgroundColor: Colors.light.surfaceContainerLowest,
+    color: Colors.light.ink,
     paddingHorizontal: 16,
     fontSize: 16,
-    paddingVertical: 16,
+    fontFamily: Typography.bodyMd.fontFamily,
   },
   hint: {
     color: Colors.light.onSurfaceVariant,
     fontSize: 12,
     marginTop: 6,
+    fontFamily: Typography.bodySm.fontFamily,
   },
   dropdown: {
     marginTop: 4,
-    borderRadius: 12,
+    borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.light.outlineVariant,
-    backgroundColor: Colors.light.surfaceContainerLow,
+    backgroundColor: Colors.light.surfaceContainerLowest,
     maxHeight: 200,
   },
   dropdownItem: {
@@ -184,12 +159,14 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.light.outlineVariant,
   },
   dropdownText: {
-    color: Colors.light.onSurface,
+    color: Colors.light.ink,
     fontSize: 14,
+    fontFamily: Typography.bodyMd.fontFamily,
   },
   selectedText: {
     color: Colors.light.primary,
     fontSize: 13,
     marginTop: 6,
+    fontFamily: Typography.bodySm.fontFamily,
   },
 });

@@ -7,6 +7,7 @@ import { getBookings } from "@/admin/lib/admin-api";
 import { useDebouncedValue } from "@/admin/lib/useDebouncedValue";
 import { StatusBadge } from "@/admin/components/StatusBadge";
 import { PageHeaderSkeleton, TableSkeleton } from "@/admin/components/Skeletons";
+import { SearchIcon } from "@/admin/components/icons";
 
 const STATUS_VALUES = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"];
 const SERVICE_VALUES = [
@@ -55,7 +56,9 @@ export default function AdminBookingsPage() {
 
       <div className="admin-toolbar">
         <div className="admin-search-wrap">
-          <span className="admin-search-icon">⌕</span>
+          <span className="admin-search-icon">
+            <SearchIcon size={15} />
+          </span>
           <input
             className="admin-search-input"
             placeholder="Search by user, pet, location..."
@@ -140,7 +143,14 @@ export default function AdminBookingsPage() {
                         {booking.user?.name || booking.user?.phoneNumber || "—"}
                       </Link>
                     </td>
-                    <td>{booking.service}</td>
+                    <td>
+                      {booking.service}
+                      {booking.group && (
+                        <span className="admin-chip" style={{ marginLeft: 8 }}>
+                          Multi-day · {booking.group.dayCount} days
+                        </span>
+                      )}
+                    </td>
                     <td>{booking.type}</td>
                     <td>{booking.pet?.name || "—"}</td>
                     <td>{booking.location?.label || "—"}</td>

@@ -42,6 +42,7 @@ model User{
   otps Otp[]
   pets Pet[]
   bookings Booking[]
+  bookingGroups BookingGroup[]
 
   @@unique([phoneNumber])
   @@index([phoneNumber])
@@ -73,6 +74,7 @@ model Location {
   longitude Float
 
   bookings Booking[]
+  bookingGroups BookingGroup[]
 
   @@index([placeId])
 }
@@ -99,6 +101,7 @@ model Pet {
   medicalHistory String?
 
   bookings Booking[]
+  bookingGroups BookingGroup[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -146,10 +149,61 @@ model Booking {
   cancellationReason String?
   scheduledAt DateTime?
 
+  groupId String?
+  group BookingGroup? @relation(fields: [groupId], references: [id])
+
+  serviceOptionId String?
+  serviceOption ServiceOption? @relation(fields: [serviceOptionId], references: [id], onDelete: SetNull)
+  durationMinutes Int?
+  priceInRupees Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([petId])
   @@index([locationId])
+  @@index([groupId])
+}
+
+model ServiceOption {
+  id String @id @default(uuid())
+
+  service Service
+  durationMinutes Int
+  label String
+  priceInRupees Int
+  sortOrder Int @default(0)
+  isActive Boolean @default(true)
+
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([service, durationMinutes])
+  @@index([service])
+}
+
+model BookingGroup {
+  id String @id @default(uuid())
+
+  userId String
+  user User @relation(fields: [userId], references: [id])
+
+  petId String
+  pet Pet @relation(fields: [petId], references: [id])
+
+  locationId String
+  location Location @relation(fields: [locationId], references: [id])
+
+  totalPriceInRupees Int
+  dayCount Int
+
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }

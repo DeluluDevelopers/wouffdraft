@@ -1,24 +1,19 @@
 import React, { useEffect, useState } from "react";
-import {
-  Text,
-  View,
-  StyleSheet,
-  ActivityIndicator,
-  Pressable,
-} from "react-native";
+import { Text, View, StyleSheet, ActivityIndicator, Pressable } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/auth/useAuth";
+import { Screen } from "@/ui/Screen";
+import { Card } from "@/ui/Card";
 import { PrimaryButton } from "@/ui/PrimaryButton";
 import { Ionicons } from "@expo/vector-icons";
-import { getBooking, type Booking } from "@/lib/api";
+import { ServiceIcons } from "@/components/icons/ServiceIcons";
+import { getBooking, MUTABLE_BOOKING_STATUSES, type Booking } from "@/lib/api";
 import Colors from "@/constants/Colors";
+import Typography, { Fonts } from "@/constants/Typography";
+import { Radius } from "@/constants/Spacing";
 import { StatusBadge } from "@/ui/StatusBadge";
-
-const SERVICE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  Bathing: "water",
-  Cutting: "cut",
-  Hygiene: "shield-checkmark",
-};
+import { getServiceAccent } from "@/constants/ServiceAccents";
+import { BookingActionSheet } from "@/components/bookings/BookingActionSheet";
 
 export default function BookingDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -26,6 +21,7 @@ export default function BookingDetailScreen() {
   const router = useRouter();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
+  const [managing, setManaging] = useState(false);
 
   useEffect(() => {
     if (!accessToken || !id) return;
@@ -37,40 +33,37 @@ export default function BookingDetailScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator color="#FFFFFF" />
-      </View>
+      <Screen>
+        <View style={styles.centered}>
+          <ActivityIndicator color={Colors.light.primary} />
+        </View>
+      </Screen>
     );
   }
 
   if (!booking) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>Booking not found</Text>
-        <PrimaryButton
-          title="Go Back"
-          onPress={() => router.back()}
-        />
-      </View>
+      <Screen>
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>Booking not found</Text>
+          <PrimaryButton title="Go Back" onPress={() => router.back()} />
+        </View>
+      </Screen>
     );
   }
 
+  const Icon = ServiceIcons[booking.service] ?? ServiceIcons.Bathing;
+  const accent = getServiceAccent(booking.service);
+
   return (
-    <View style={styles.container}>
-      <Pressable
-        onPress={() => router.back()}
-        style={styles.backBtn}
-      >
-        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+    <Screen>
+      <Pressable onPress={() => router.back()} style={styles.backBtn}>
+        <Ionicons name="arrow-back" size={22} color={Colors.light.ink} />
       </Pressable>
 
       <View style={styles.serviceSection}>
-        <View style={styles.bigIconWrap}>
-          <Ionicons
-            name={SERVICE_ICONS[booking.service] || "ellipse"}
-            size={40}
-            color="#FFFFFF"
-          />
+        <View style={[styles.bigIconWrap, { backgroundColor: accent.bg }]}>
+          <Icon size={36} color={accent.fg} strokeWidth={1.6} />
         </View>
         <Text style={styles.serviceTitle}>{booking.service}</Text>
         <View style={styles.badgeRow}>
@@ -79,7 +72,9 @@ export default function BookingDetailScreen() {
               styles.badge,
               {
                 backgroundColor:
-                  booking.type === "Instant" ? Colors.light.primaryContainer : Colors.light.surfaceContainer,
+                  booking.type === "Instant"
+                    ? Colors.light.primaryContainer
+                    : Colors.light.lemon,
               },
             ]}
           >
@@ -87,7 +82,10 @@ export default function BookingDetailScreen() {
               style={[
                 styles.badgeText,
                 {
-                  color: booking.type === "Instant" ? Colors.light.onPrimary : Colors.light.warning,
+                  color:
+                    booking.type === "Instant"
+                      ? Colors.light.onPrimaryContainer
+                      : Colors.light.onLemon,
                 },
               ]}
             >
@@ -98,29 +96,19 @@ export default function BookingDetailScreen() {
         </View>
       </View>
 
-      <View style={styles.detailsCard}>
+      <Card>
         <DetailRow
           icon="calendar"
           label="Booked on"
           value={new Date(booking.createdAt).toLocaleDateString()}
         />
+        <DetailRow icon="paw" label="Pet" value={booking.pet?.name || "Unknown"} />
         <DetailRow
-          icon="paw"
-          label="Pet"
-          value={booking.pet?.name || "Unknown"}
-        />
-        <DetailRow
-          icon={
-            booking.pet?.species === "Dog" ? "paw" : "paw-outline"
-          }
+          icon={booking.pet?.species === "Dog" ? "paw" : "paw-outline"}
           label="Species"
           value={booking.pet?.species || "-"}
         />
-        <DetailRow
-          icon="location"
-          label="Location"
-          value={booking.location?.label || "-"}
-        />
+        <DetailRow icon="location" label="Location" value={booking.location?.label || "-"} />
         {booking.scheduledAt && (
           <DetailRow
             icon="time"
@@ -128,12 +116,8 @@ export default function BookingDetailScreen() {
             value={new Date(booking.scheduledAt).toLocaleString()}
           />
         )}
-        <DetailRow
-          icon="copy"
-          label="Booking ID"
-          value={booking.id.slice(0, 8) + "..."}
-        />
-      </View>
+        <DetailRow icon="copy" label="Booking ID" value={booking.id.slice(0, 8) + "..."} last />
+      </Card>
 
       {booking.status === "CANCELLED" && booking.cancellationReason && (
         <View style={styles.cancellationCard}>
@@ -141,12 +125,28 @@ export default function BookingDetailScreen() {
             <Ionicons name="close-circle" size={18} color={Colors.light.error} />
             <Text style={styles.cancellationTitle}>Cancellation reason</Text>
           </View>
-          <Text style={styles.cancellationText}>
-            {booking.cancellationReason}
-          </Text>
+          <Text style={styles.cancellationText}>{booking.cancellationReason}</Text>
         </View>
       )}
-    </View>
+
+      {MUTABLE_BOOKING_STATUSES.includes(booking.status as any) && (
+        <PrimaryButton
+          title="Manage booking"
+          variant="secondary"
+          onPress={() => setManaging(true)}
+        />
+      )}
+
+      {accessToken && (
+        <BookingActionSheet
+          visible={managing}
+          onClose={() => setManaging(false)}
+          booking={booking}
+          accessToken={accessToken}
+          onUpdated={setBooking}
+        />
+      )}
+    </Screen>
   );
 }
 
@@ -154,15 +154,17 @@ function DetailRow({
   icon,
   label,
   value,
+  last,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value: string;
+  last?: boolean;
 }) {
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, !last && styles.rowDivider]}>
       <View style={styles.rowLeft}>
-        <Ionicons name={icon} size={18} color="#666" />
+        <Ionicons name={icon} size={17} color={Colors.light.onSurfaceVariant} />
         <Text style={styles.rowLabel}>{label}</Text>
       </View>
       <Text style={styles.rowValue}>{value}</Text>
@@ -171,27 +173,20 @@ function DetailRow({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.light.surface,
-    paddingHorizontal: 20,
-    paddingTop: 60,
-  },
   centered: {
     flex: 1,
-    backgroundColor: Colors.light.surface,
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
   },
   errorText: {
+    ...Typography.bodyMd,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 16,
   },
   backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: Radius.full,
     backgroundColor: Colors.light.surfaceContainerLow,
     alignItems: "center",
     justifyContent: "center",
@@ -199,23 +194,20 @@ const styles = StyleSheet.create({
   },
   serviceSection: {
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: 28,
     gap: 8,
   },
   bigIconWrap: {
     width: 72,
     height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.light.primaryContainer,
+    borderRadius: Radius.full,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
   },
   serviceTitle: {
-    color: Colors.light.onSurface,
-    fontSize: 24,
-    fontWeight: "700",
-    letterSpacing: -0.01,
+    ...Typography.headlineLg,
+    color: Colors.light.ink,
   },
   badgeRow: {
     flexDirection: "row",
@@ -224,29 +216,22 @@ const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
   },
   badgeText: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  detailsCard: {
-    backgroundColor: Colors.light.surfaceContainerLow,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.light.outlineVariant,
-    padding: 20,
-    gap: 16,
-    shadowColor: "#0c5252",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    fontSize: 12,
+    fontFamily: Fonts.labelBold,
+    letterSpacing: 0.3,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingVertical: 12,
+  },
+  rowDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.outlineVariant,
   },
   rowLeft: {
     flexDirection: "row",
@@ -254,17 +239,17 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   rowLabel: {
+    ...Typography.bodyMd,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 14,
   },
   rowValue: {
-    color: Colors.light.onSurface,
-    fontSize: 14,
-    fontWeight: "600",
+    ...Typography.bodyMd,
+    fontFamily: Fonts.bodyMedium,
+    color: Colors.light.ink,
   },
   cancellationCard: {
     backgroundColor: Colors.light.errorContainer,
-    borderRadius: 16,
+    borderRadius: Radius.lg,
     padding: 16,
     marginTop: 16,
     gap: 6,
@@ -277,11 +262,10 @@ const styles = StyleSheet.create({
   cancellationTitle: {
     color: Colors.light.error,
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: Fonts.labelBold,
   },
   cancellationText: {
+    ...Typography.bodyMd,
     color: Colors.light.onErrorContainer,
-    fontSize: 14,
-    lineHeight: 20,
   },
 });

@@ -1,11 +1,20 @@
 import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Alert, Text, View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import {
+  Alert,
+  Text,
+  View,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/auth/useAuth";
 import { Screen } from "@/ui/Screen";
 import { PrimaryButton } from "@/ui/PrimaryButton";
 import Colors from "@/constants/Colors";
+import Typography from "@/constants/Typography";
+import { Radius, Spacing } from "@/constants/Spacing";
 
 export default function VerifyOtpScreen() {
   const router = useRouter();
@@ -30,7 +39,9 @@ export default function VerifyOtpScreen() {
       }, 100);
     },
     onError: (err: any) => {
-      const message = err?.response?.data?.message || "Invalid OTP. Please check the code and try again.";
+      const message =
+        err?.response?.data?.message ||
+        "Invalid OTP. Please check the code and try again.";
       setError(message);
     },
   });
@@ -47,7 +58,7 @@ export default function VerifyOtpScreen() {
   return (
     <Screen>
       <View style={styles.container}>
-        <Text style={styles.title}>Verify OTP</Text>
+        <Text style={styles.title}>VERIFY</Text>
         <Text style={styles.subtitle}>
           We sent a code to {routePhone || "your phone number"}.
         </Text>
@@ -60,7 +71,8 @@ export default function VerifyOtpScreen() {
 
         <TextInput
           style={styles.otpInput}
-          placeholder="Enter OTP"
+          placeholder="• • • • • •"
+          placeholderTextColor={Colors.light.outline}
           keyboardType="number-pad"
           value={otp}
           onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
@@ -84,52 +96,54 @@ export default function VerifyOtpScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    gap: 24,
+    flex: 1,
+    justifyContent: "center",
   },
   title: {
-    color: Colors.light.onSurface,
-    fontSize: 30,
-    fontWeight: "700",
-    letterSpacing: -0.01,
-    marginBottom: 8,
+    ...Typography.displayLg,
+    color: Colors.light.ink,
+    textAlign: "center",
+    marginBottom: 12,
   },
   subtitle: {
+    ...Typography.bodyMd,
     color: Colors.light.onSurfaceVariant,
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 20,
+    textAlign: "center",
+    marginBottom: Spacing.lg,
   },
   errorWrap: {
     backgroundColor: Colors.light.errorContainer,
-    padding: 12,
-    borderRadius: 8,
+    padding: 14,
+    borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: Colors.light.error,
+    marginBottom: Spacing.md,
   },
   errorText: {
     color: Colors.light.onErrorContainer,
     fontSize: 14,
-    fontWeight: "500",
+    fontFamily: Typography.bodyMd.fontFamily,
   },
   otpInput: {
-    height: 56,
-    borderRadius: 12,
-    borderWidth: 1,
+    height: 60,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
     borderColor: Colors.light.outlineVariant,
-    backgroundColor: Colors.light.surfaceContainerLow,
-    color: Colors.light.onSurface,
-    fontSize: 16,
+    backgroundColor: Colors.light.surfaceContainerLowest,
+    color: Colors.light.ink,
+    fontSize: 22,
     paddingHorizontal: 16,
-    paddingVertical: 16,
     textAlign: "center",
-    letterSpacing: 4,
+    letterSpacing: 8,
+    fontFamily: Typography.headlineMd.fontFamily,
   },
   backWrap: {
-    marginTop: 18,
+    marginTop: 20,
     alignItems: "center",
   },
   backText: {
-    color: Colors.light.onSurfaceVariant,
+    color: Colors.light.primary,
     fontSize: 14,
+    fontFamily: Typography.bodyMd.fontFamily,
   },
 });

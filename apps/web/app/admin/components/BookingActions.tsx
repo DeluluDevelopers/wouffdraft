@@ -82,8 +82,7 @@ export function BookingActions({
         {error && <div className="admin-login-error" style={{ marginTop: 10 }}>{error}</div>}
         <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
           <button
-            className="admin-button"
-            style={{ background: "var(--admin-error)" }}
+            className="admin-button admin-button-danger"
             disabled={mutation.isPending}
             onClick={confirmCancel}
           >

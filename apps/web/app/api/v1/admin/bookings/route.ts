@@ -53,6 +53,7 @@ export const GET = apiHandler(async (req: NextRequest) => {
       user: {
         select: { id: true, name: true, phoneNumber: true, email: true },
       },
+      group: { select: { id: true, dayCount: true } },
     },
     orderBy: { createdAt: "desc" },
   });

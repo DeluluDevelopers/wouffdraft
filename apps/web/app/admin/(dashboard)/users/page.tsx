@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getUsers } from "@/admin/lib/admin-api";
 import { useDebouncedValue } from "@/admin/lib/useDebouncedValue";
 import { PageHeaderSkeleton, TableSkeleton } from "@/admin/components/Skeletons";
+import { SearchIcon } from "@/admin/components/icons";
 
 const PROFILE_STATUS_VALUES = [
   "REGISTERED",
@@ -59,7 +60,9 @@ export default function AdminUsersPage() {
 
       <div className="admin-toolbar">
         <div className="admin-search-wrap">
-          <span className="admin-search-icon">⌕</span>
+          <span className="admin-search-icon">
+            <SearchIcon size={15} />
+          </span>
           <input
             className="admin-search-input"
             placeholder="Search by name, phone, or email..."

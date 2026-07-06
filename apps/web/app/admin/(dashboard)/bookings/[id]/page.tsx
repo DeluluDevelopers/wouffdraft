@@ -127,6 +127,53 @@ export default function AdminBookingDetailPage() {
         </div>
       </div>
 
+      {booking.group && (
+        <div className="admin-card">
+          <div className="admin-card-title">
+            Part of multi-day booking · {booking.group.dayCount} days
+          </div>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Service</th>
+                  <th>Scheduled</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {booking.group.bookings?.map((sibling) => (
+                  <tr key={sibling.id}>
+                    <td>{sibling.service}</td>
+                    <td>
+                      {sibling.scheduledAt
+                        ? new Date(sibling.scheduledAt).toLocaleString()
+                        : "—"}
+                    </td>
+                    <td>
+                      <StatusBadge status={sibling.status} />
+                    </td>
+                    <td>
+                      {sibling.id === booking.id ? (
+                        <span className="admin-muted">This booking</span>
+                      ) : (
+                        <Link
+                          href={`/admin/bookings/${sibling.id}`}
+                          className="admin-button admin-button-secondary"
+                        >
+                          View
+                        </Link>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div className="admin-card">
         <div className="admin-card-title">Timeline</div>
         <div className="admin-detail-grid">
