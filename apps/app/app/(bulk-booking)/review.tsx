@@ -49,10 +49,16 @@ export default function BulkBookingReviewScreen() {
           serviceOptionId: day.serviceOptionId!,
         })),
       });
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      await queryClient.invalidateQueries({ queryKey: ["bookings"] });
       const groupId = result.group.id;
       reset();
-      router.replace(`/bookings/group/${groupId}` as any);
+      // Replace onto the bookings tab's own base route first, then push the
+      // group screen on top of it — replacing straight to the nested
+      // group/[id] route from this separate (bulk-booking) stack leaves the
+      // bookings tab's stack without its "index" underneath, so back would
+      // fall through to the home tab instead of the bookings list.
+      router.replace("/(app)/bookings" as any);
+      router.push(`/(app)/bookings/group/${groupId}` as any);
     } catch (err: any) {
       Alert.alert("Booking failed", err?.response?.data?.message || "Something went wrong");
     } finally {

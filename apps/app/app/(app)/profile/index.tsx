@@ -173,7 +173,7 @@ export default function ProfileScreen() {
   const primaryLocation = profile?.location?.[0] || null;
 
   return (
-    <Screen>
+    <Screen edges={["top", "left", "right"]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Profile</Text>
 

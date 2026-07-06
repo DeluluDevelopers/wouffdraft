@@ -38,7 +38,7 @@ export default function BookingsScreen() {
   }
 
   return (
-    <Screen>
+    <Screen edges={["top", "left", "right"]}>
       <Text style={styles.title}>Bookings</Text>
 
       {isLoading ? (

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "The Wouff",
-    "slug": "the-wouff",
+    "slug": "app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -45,6 +45,7 @@
       "eas": {
         "projectId": "a7405987-8f34-4848-bd6c-d015a044f62d"
       }
-    }
+    },
+    "owner": "safalbhandari"
   }
 }

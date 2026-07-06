@@ -35,7 +35,7 @@ export default function BookingGroupScreen() {
 
   if (isLoading || !group) {
     return (
-      <Screen>
+      <Screen edges={["top", "left", "right"]}>
         <View style={styles.centered}>
           <ActivityIndicator color={Colors.light.primary} />
         </View>
@@ -51,7 +51,7 @@ export default function BookingGroupScreen() {
     .reduce((sum, b) => sum + (b.priceInRupees ?? 0), 0);
 
   return (
-    <Screen scroll>
+    <Screen scroll edges={["top", "left", "right"]}>
       <Pressable onPress={() => router.back()} style={styles.backBtn}>
         <Ionicons name="arrow-back" size={22} color={Colors.light.ink} />
       </Pressable>

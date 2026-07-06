@@ -33,7 +33,7 @@ export default function BookingDetailScreen() {
 
   if (loading) {
     return (
-      <Screen>
+      <Screen edges={["top", "left", "right"]}>
         <View style={styles.centered}>
           <ActivityIndicator color={Colors.light.primary} />
         </View>
@@ -43,7 +43,7 @@ export default function BookingDetailScreen() {
 
   if (!booking) {
     return (
-      <Screen>
+      <Screen edges={["top", "left", "right"]}>
         <View style={styles.centered}>
           <Text style={styles.errorText}>Booking not found</Text>
           <PrimaryButton title="Go Back" onPress={() => router.back()} />
@@ -56,7 +56,7 @@ export default function BookingDetailScreen() {
   const accent = getServiceAccent(booking.service);
 
   return (
-    <Screen>
+    <Screen edges={["top", "left", "right"]}>
       <Pressable onPress={() => router.back()} style={styles.backBtn}>
         <Ionicons name="arrow-back" size={22} color={Colors.light.ink} />
       </Pressable>

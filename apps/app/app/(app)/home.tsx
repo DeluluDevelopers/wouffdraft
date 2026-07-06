@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -13,13 +14,14 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/auth/useAuth";
 import { Screen } from "@/ui/Screen";
 import { Card } from "@/ui/Card";
 import { BottomSheet } from "@/ui/BottomSheet";
 import { PrimaryButton } from "@/ui/PrimaryButton";
-import { ServiceIcons, SparkleIcon, PawIcon } from "@/components/icons/ServiceIcons";
+import { SparkleIcon, PawIcon } from "@/components/icons/ServiceIcons";
 import { CalendarRangeIcon } from "@/components/icons/BulkBookingIcons";
 import {
   createBooking,
@@ -35,11 +37,22 @@ import { getServiceAccent } from "@/constants/ServiceAccents";
 const SERVICES = [
   { key: "Bathing", label: "Bathing", duration: "30-45 min", price: "₹499" },
   { key: "Cutting", label: "Hair Cutting", duration: "45-60 min", price: "₹599" },
+  { key: "Hygiene", label: "Hygiene", duration: "20-30 min", price: "₹249" },
   { key: "BlowDry", label: "Blow Dry", duration: "20-30 min", price: "₹199" },
   { key: "NailTrim", label: "Nail Trimming", duration: "15-20 min", price: "₹149" },
   { key: "Spa", label: "Spa Treatment", duration: "60-90 min", price: "₹999" },
   { key: "Cleaning", label: "Cleaning", duration: "45-60 min", price: "₹599" },
 ] as const;
+
+const SERVICE_IMAGES: Record<string, number> = {
+  Bathing: require("@/assets/images/services/bathing.jpg"),
+  Cutting: require("@/assets/images/services/cutting.jpg"),
+  Hygiene: require("@/assets/images/services/hygiene.jpg"),
+  BlowDry: require("@/assets/images/services/blowdry.jpg"),
+  NailTrim: require("@/assets/images/services/nailtrim.jpg"),
+  Spa: require("@/assets/images/services/spa.jpg"),
+  Cleaning: require("@/assets/images/services/cleaning.jpg"),
+};
 
 const PACKAGES = [
   {
@@ -80,10 +93,19 @@ export default function HomeScreen() {
   const [sheetVisible, setSheetVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const scrollRef = React.useRef<ScrollView>(null);
+  const servicesY = React.useRef(0);
 
   useEffect(() => {
     if (profile?.pets) setPets(profile.pets);
+    if (profile?.location) setLocations(profile.location);
   }, [profile]);
+
+  const primaryLocation = locations[0];
+
+  const scrollToServices = () => {
+    scrollRef.current?.scrollTo({ y: servicesY.current, animated: true });
+  };
 
   const openServiceSheet = (service: Service) => {
     setSelectedService(service);
@@ -134,9 +156,12 @@ export default function HomeScreen() {
     svc.label.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  const [heroPackage, ...morePackages] = PACKAGES;
+
   return (
-    <Screen padded={false}>
+    <Screen padded={false} edges={["top", "left", "right"]}>
       <ScrollView
+        ref={scrollRef}
         showsVerticalScrollIndicator={false}
         style={styles.container}
         contentContainerStyle={styles.containerContent}
@@ -146,44 +171,92 @@ export default function HomeScreen() {
           <Text style={styles.greeting}>
             {profile?.name ? `Hi, ${profile.name.split(" ")[0]}` : "Welcome back"}
           </Text>
-          <Text style={styles.subtitle}>What would you like to book today?</Text>
-        </View>
-
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={19} color={Colors.light.onSurfaceVariant} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search services..."
-            placeholderTextColor={Colors.light.outline}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-
-        {/* Multi-day booking CTA */}
-        <Pressable
-          style={({ pressed }) => [styles.bulkCta, pressed && styles.pressed]}
-          onPress={() => router.push("/(bulk-booking)" as any)}
-        >
-          <View style={styles.bulkCtaIcon}>
-            <CalendarRangeIcon size={22} color={Colors.light.onTertiary} strokeWidth={1.6} />
+          <View style={styles.headerRow}>
+            <Pressable
+              style={styles.locationButton}
+              onPress={() => router.push("/(app)/profile/locations" as any)}
+            >
+              <Ionicons name="location" size={15} color={Colors.light.primary} />
+              <Text style={styles.locationLabel} numberOfLines={1}>
+                {primaryLocation?.label ?? "Add a location"}
+              </Text>
+              <Ionicons name="chevron-down" size={13} color={Colors.light.onSurfaceVariant} />
+            </Pressable>
+            <View style={styles.headerActions}>
+              <Pressable
+                style={styles.headerIconBtn}
+                onPress={() => router.push("/(app)/bookings" as any)}
+              >
+                <Ionicons name="calendar-outline" size={18} color={Colors.light.ink} />
+              </Pressable>
+              <Pressable
+                style={styles.headerIconBtn}
+                onPress={() => router.push("/(app)/profile" as any)}
+              >
+                <Ionicons name="person-outline" size={18} color={Colors.light.ink} />
+              </Pressable>
+            </View>
           </View>
-          <View style={styles.bulkCtaText}>
-            <Text style={styles.bulkCtaTitle}>Book multiple days</Text>
-            <Text style={styles.bulkCtaSubtitle}>
-              Plan a whole week of visits in one go
+          {!!primaryLocation?.address && (
+            <Text style={styles.locationAddress} numberOfLines={1}>
+              {primaryLocation.address}
             </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={Colors.light.onTertiary} />
-        </Pressable>
+          )}
+        </View>
+
+        {/* Hero: Quick Book / Multi-day Plan */}
+        <View style={styles.heroRow}>
+          <Pressable
+            style={({ pressed }) => [styles.heroCard, styles.heroCardPrimary, pressed && styles.pressed]}
+            onPress={scrollToServices}
+          >
+            <View style={styles.heroWatermark}>
+              <PawIcon size={72} color={Colors.light.onPrimary} />
+            </View>
+            <View style={styles.heroIconWrap}>
+              <Ionicons name="flash" size={20} color={Colors.light.primary} />
+            </View>
+            <Text style={styles.heroTitlePrimary}>Quick Book</Text>
+            <Text style={styles.heroSubtitlePrimary}>Pick any service below</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.heroCard, styles.heroCardTertiary, pressed && styles.pressed]}
+            onPress={() => router.push("/(bulk-booking)" as any)}
+          >
+            <View style={styles.heroWatermark}>
+              <SparkleIcon size={64} color={Colors.light.onTertiary} />
+            </View>
+            <View style={styles.heroIconWrapDark}>
+              <CalendarRangeIcon size={20} color={Colors.light.onTertiary} strokeWidth={1.8} />
+            </View>
+            <Text style={styles.heroTitleTertiary}>Multi-day Plan</Text>
+            <Text style={styles.heroSubtitleTertiary}>Book a whole week at once</Text>
+          </Pressable>
+        </View>
 
         {/* Our Services */}
-        <View style={styles.section}>
+        <View
+          style={styles.section}
+          onLayout={(e) => {
+            servicesY.current = e.nativeEvent.layout.y;
+          }}
+        >
           <Text style={styles.sectionTitle}>Our Services</Text>
+
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={19} color={Colors.light.onSurfaceVariant} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search services..."
+              placeholderTextColor={Colors.light.outline}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+
           <View style={styles.servicesGrid}>
             {filteredServices.map((svc) => {
-              const Icon = ServiceIcons[svc.key];
               const accent = getServiceAccent(svc.key);
               return (
                 <Pressable
@@ -191,12 +264,18 @@ export default function HomeScreen() {
                   style={({ pressed }) => [styles.serviceCard, pressed && styles.pressed]}
                   onPress={() => openServiceSheet(svc.key)}
                 >
-                  <View style={[styles.serviceIconContainer, { backgroundColor: accent.bg }]}>
-                    <Icon size={26} color={accent.fg} strokeWidth={1.6} />
+                  <View style={styles.serviceImageTile}>
+                    <Image
+                      source={SERVICE_IMAGES[svc.key]}
+                      style={styles.serviceImage}
+                      resizeMode="cover"
+                    />
                   </View>
-                  <Text style={styles.serviceName}>{svc.label}</Text>
-                  <Text style={styles.serviceDuration}>{svc.duration}</Text>
-                  <Text style={styles.servicePrice}>{svc.price}</Text>
+                  <View style={[styles.serviceLabelFooter, { backgroundColor: accent.bg }]}>
+                    <Text style={styles.serviceName}>{svc.label}</Text>
+                    <Text style={styles.serviceDuration}>{svc.duration}</Text>
+                    <Text style={[styles.servicePrice, { color: accent.fg }]}>{svc.price}</Text>
+                  </View>
                 </Pressable>
               );
             })}
@@ -206,27 +285,60 @@ export default function HomeScreen() {
         {/* Popular Packages */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Popular Packages</Text>
-          <View style={styles.packagesContainer}>
-            {PACKAGES.map((pkg) => (
-              <Pressable
-                key={pkg.id}
-                style={({ pressed }) => [styles.packageCard, pressed && styles.pressed]}
-                onPress={() => Alert.alert(pkg.name, pkg.services.join(", "))}
-              >
-                <View style={[styles.packageTag, { backgroundColor: pkg.tagBg }]}>
-                  <SparkleIcon size={12} color={pkg.tagFg} />
+
+          <Pressable
+            style={({ pressed }) => pressed && styles.pressed}
+            onPress={() => Alert.alert(heroPackage.name, heroPackage.services.join(", "))}
+          >
+            <LinearGradient
+              colors={[Colors.light.primary, Colors.light.tertiary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.promoBanner}
+            >
+              <View style={styles.promoWatermark}>
+                <SparkleIcon size={80} color={Colors.light.onPrimary} />
+              </View>
+              <View style={styles.promoIconWrap}>
+                <SparkleIcon size={16} color={Colors.light.primary} />
+              </View>
+              <Text style={styles.promoTitle}>{heroPackage.name}</Text>
+              <Text style={styles.promoServices}>{heroPackage.services.join(" • ")}</Text>
+              <View style={styles.promoFooter}>
+                <View>
+                  <Text style={styles.promoPrice}>{heroPackage.price}</Text>
+                  <Text style={styles.promoDiscount}>{heroPackage.discount}</Text>
                 </View>
-                <View style={styles.packageContent}>
-                  <Text style={styles.packageName}>{pkg.name}</Text>
-                  <Text style={styles.packageServices}>{pkg.services.join(" • ")}</Text>
-                  <View style={styles.packagePriceRow}>
-                    <Text style={styles.packagePrice}>{pkg.price}</Text>
-                    <Text style={styles.packageDiscount}>{pkg.discount}</Text>
+                <View style={styles.promoClaimBtn}>
+                  <Text style={styles.promoClaimText}>View</Text>
+                </View>
+              </View>
+            </LinearGradient>
+          </Pressable>
+
+          {morePackages.length > 0 && (
+            <View style={styles.packagesContainer}>
+              {morePackages.map((pkg) => (
+                <Pressable
+                  key={pkg.id}
+                  style={({ pressed }) => [styles.packageCard, pressed && styles.pressed]}
+                  onPress={() => Alert.alert(pkg.name, pkg.services.join(", "))}
+                >
+                  <View style={[styles.packageTag, { backgroundColor: pkg.tagBg }]}>
+                    <SparkleIcon size={12} color={pkg.tagFg} />
                   </View>
-                </View>
-              </Pressable>
-            ))}
-          </View>
+                  <View style={styles.packageContent}>
+                    <Text style={styles.packageName}>{pkg.name}</Text>
+                    <Text style={styles.packageServices}>{pkg.services.join(" • ")}</Text>
+                    <View style={styles.packagePriceRow}>
+                      <Text style={styles.packagePrice}>{pkg.price}</Text>
+                      <Text style={styles.packageDiscount}>{pkg.discount}</Text>
+                    </View>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -303,7 +415,7 @@ export default function HomeScreen() {
                   mode="date"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
                   minimumDate={new Date()}
-                  onValueChange={(_event, date?: Date) => {
+                  onChange={(_event, date?: Date) => {
                     setShowDatePicker(false);
                     if (date) setScheduledDate(date);
                   }}
@@ -409,16 +521,49 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   header: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   greeting: {
     ...Typography.displayMd,
+    fontSize: 22,
     color: Colors.light.ink,
-    marginBottom: 4,
+    marginBottom: 8,
   },
-  subtitle: {
-    ...Typography.bodyMd,
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  locationButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flexShrink: 1,
+  },
+  locationLabel: {
+    ...Typography.titleMd,
+    color: Colors.light.ink,
+    flexShrink: 1,
+  },
+  locationAddress: {
+    ...Typography.bodySm,
     color: Colors.light.onSurfaceVariant,
+    marginTop: 4,
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  headerIconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.light.surfaceContainerLowest,
+    borderWidth: 1.5,
+    borderColor: Colors.light.outlineVariant,
+    alignItems: "center",
+    justifyContent: "center",
   },
   searchContainer: {
     flexDirection: "row",
@@ -429,7 +574,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
     gap: 12,
   },
   searchInput: {
@@ -438,34 +583,69 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.body,
     color: Colors.light.ink,
   },
-  bulkCta: {
+  heroRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    backgroundColor: Colors.light.tertiary,
-    borderRadius: Radius.lg,
-    padding: 16,
-    marginBottom: Spacing.lg,
+    gap: 12,
+    marginBottom: Spacing.xl,
   },
-  bulkCtaIcon: {
-    width: 44,
-    height: 44,
+  heroCard: {
+    flex: 1,
+    minHeight: 140,
+    borderRadius: Radius.xl,
+    padding: Spacing.md,
+    justifyContent: "space-between",
+    overflow: "hidden",
+  },
+  heroCardPrimary: {
+    backgroundColor: Colors.light.primary,
+  },
+  heroCardTertiary: {
+    backgroundColor: Colors.light.tertiary,
+  },
+  heroWatermark: {
+    position: "absolute",
+    right: -14,
+    bottom: -14,
+    opacity: 0.16,
+  },
+  heroIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.light.onPrimary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroIconWrapDark: {
+    width: 38,
+    height: 38,
     borderRadius: Radius.full,
     backgroundColor: Colors.light.tertiaryContainer,
     alignItems: "center",
     justifyContent: "center",
   },
-  bulkCtaText: {
-    flex: 1,
-    gap: 2,
-  },
-  bulkCtaTitle: {
+  heroTitlePrimary: {
     ...Typography.titleMd,
-    color: Colors.light.onTertiary,
+    fontSize: 17,
+    color: Colors.light.onPrimary,
+    marginTop: Spacing.md,
   },
-  bulkCtaSubtitle: {
+  heroSubtitlePrimary: {
+    ...Typography.bodySm,
+    color: Colors.light.onPrimary,
+    opacity: 0.85,
+    marginTop: 2,
+  },
+  heroTitleTertiary: {
+    ...Typography.titleMd,
+    fontSize: 17,
+    color: Colors.light.onTertiary,
+    marginTop: Spacing.md,
+  },
+  heroSubtitleTertiary: {
     ...Typography.bodySm,
     color: Colors.light.onTertiaryContainer,
+    marginTop: 2,
   },
   section: {
     marginBottom: Spacing.xl,
@@ -483,24 +663,28 @@ const styles = StyleSheet.create({
   },
   serviceCard: {
     width: "48%",
-    backgroundColor: Colors.light.surfaceContainerLowest,
     borderRadius: Radius.lg,
     borderWidth: 1.5,
     borderColor: Colors.light.outlineVariant,
-    padding: 16,
-    alignItems: "center",
-    gap: 6,
+    overflow: "hidden",
   },
   pressed: {
     opacity: 0.85,
   },
-  serviceIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: Radius.full,
+  serviceImageTile: {
+    width: "100%",
+    aspectRatio: 1.25,
+    backgroundColor: Colors.light.surfaceContainerLowest,
+    overflow: "hidden",
+  },
+  serviceImage: {
+    width: "100%",
+    height: "100%",
+  },
+  serviceLabelFooter: {
+    padding: 14,
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 2,
+    gap: 4,
   },
   serviceName: {
     ...Typography.titleMd,
@@ -513,10 +697,69 @@ const styles = StyleSheet.create({
   },
   servicePrice: {
     ...Typography.headlineMd,
+  },
+  promoBanner: {
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+    overflow: "hidden",
+  },
+  promoWatermark: {
+    position: "absolute",
+    right: -20,
+    top: -20,
+    opacity: 0.14,
+  },
+  promoIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.light.onPrimary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.sm,
+  },
+  promoTitle: {
+    ...Typography.headlineLg,
+    color: Colors.light.onPrimary,
+  },
+  promoServices: {
+    ...Typography.bodySm,
+    color: Colors.light.onPrimary,
+    opacity: 0.85,
+    marginTop: 2,
+    marginBottom: Spacing.md,
+  },
+  promoFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  promoPrice: {
+    ...Typography.displayMd,
+    fontSize: 22,
+    color: Colors.light.onPrimary,
+  },
+  promoDiscount: {
+    ...Typography.bodySm,
+    fontFamily: Fonts.bodyBold,
+    color: Colors.light.onPrimary,
+    opacity: 0.85,
+  },
+  promoClaimBtn: {
+    backgroundColor: Colors.light.onPrimary,
+    borderRadius: Radius.md,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  promoClaimText: {
+    ...Typography.labelCaps,
+    fontSize: 13,
     color: Colors.light.primary,
   },
   packagesContainer: {
     gap: 14,
+    marginTop: Spacing.md,
   },
   packageCard: {
     flexDirection: "row",

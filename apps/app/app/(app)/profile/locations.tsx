@@ -110,7 +110,7 @@ export default function LocationsScreen() {
   const canSave = !!(selectedPlaceId && label.trim());
 
   return (
-    <Screen>
+    <Screen edges={["top", "left", "right"]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color={Colors.light.ink} />
