@@ -1,8 +1,9 @@
 .page {
-  --charcoal: #2b2622;
-  --cream: #fbf3e9;
-  --terracotta: #e07a5f;
-  --terracotta-dark: #c85f45;
+  --charcoal: #2b2b2b;
+  --cream: #fffff9;
+  --periwinkle: #7f7fed;
+  --orchid: #c483e4;
+  --butter: #fcec97;
 
   position: relative;
   min-height: 100svh;
@@ -11,37 +12,38 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--cream);
-  color: var(--charcoal);
-  font-family: var(--font-baloo), var(--font-geist-sans), sans-serif;
-  padding: 24px;
+  background: var(--charcoal);
+  color: var(--cream);
+  font-family: var(--font-nunito), sans-serif;
+  padding: 32px 24px;
   text-align: center;
 }
 
-.blobOne,
-.blobTwo {
+.glowOne,
+.glowTwo {
   position: absolute;
   border-radius: 50%;
-  filter: blur(60px);
+  filter: blur(90px);
   z-index: 0;
+  pointer-events: none;
 }
 
-.blobOne {
-  width: 420px;
-  height: 420px;
-  background: var(--terracotta);
-  opacity: 0.35;
-  top: -120px;
-  left: -120px;
+.glowOne {
+  width: 440px;
+  height: 440px;
+  background: var(--periwinkle);
+  opacity: 0.22;
+  top: -140px;
+  left: -140px;
 }
 
-.blobTwo {
-  width: 360px;
-  height: 360px;
-  background: #f2c14e;
-  opacity: 0.3;
-  bottom: -140px;
-  right: -100px;
+.glowTwo {
+  width: 380px;
+  height: 380px;
+  background: var(--orchid);
+  opacity: 0.18;
+  bottom: -150px;
+  right: -120px;
 }
 
 .main {
@@ -50,67 +52,109 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 560px;
+  max-width: 580px;
 }
 
-.mark {
-  animation: float 4s ease-in-out infinite;
-  margin-bottom: 8px;
+/* The logo PNG carries ~25% transparent padding on each side, so it is sized
+   up and pulled in with negative margins to sit optically correct. */
+.logoWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -8% 0 -6%;
 }
 
-.wordmark {
-  width: 200px;
+.logo {
+  width: clamp(240px, 46vw, 330px);
   height: auto;
-  margin-bottom: 28px;
+  animation: float 5s ease-in-out infinite;
+}
+
+.sparkleLeft,
+.sparkleRight {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+.sparkleLeft {
+  color: var(--butter);
+  top: 26%;
+  left: 20%;
+}
+
+.sparkleRight {
+  color: var(--periwinkle);
+  width: 14px;
+  height: 14px;
+  bottom: 30%;
+  right: 20%;
+  animation-delay: 1.4s;
+}
+
+.eyebrow {
+  font-family: var(--font-neucha), cursive;
+  font-size: clamp(1.05rem, 2.6vw, 1.3rem);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--periwinkle);
+  margin-bottom: 6px;
 }
 
 .heading {
-  font-size: clamp(2.5rem, 7vw, 4rem);
-  font-weight: 800;
-  color: var(--terracotta-dark);
-  letter-spacing: -0.02em;
-  margin-bottom: 16px;
+  font-family: var(--font-neucha), cursive;
+  font-weight: 400;
+  font-size: clamp(3rem, 10vw, 5.25rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  color: var(--cream);
+  margin-bottom: 20px;
 }
 
 .subheading {
-  font-size: clamp(1rem, 2.2vw, 1.15rem);
-  font-weight: 500;
-  line-height: 1.6;
-  color: var(--charcoal);
-  opacity: 0.85;
-  max-width: 420px;
-  margin-bottom: 36px;
-}
-
-.pawDivider {
-  display: flex;
-  gap: 10px;
-}
-
-.pawDivider span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--terracotta);
-  opacity: 0.5;
-}
-
-.pawDivider span:nth-child(2) {
+  font-size: clamp(0.98rem, 2.1vw, 1.1rem);
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--cream);
   opacity: 0.75;
+  max-width: 430px;
+  margin-bottom: 34px;
 }
 
-.pawDivider span:nth-child(3) {
-  opacity: 1;
+.rule {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 260px;
+}
+
+.ruleLine {
+  flex: 1;
+  height: 1px;
+  background: var(--cream);
+  opacity: 0.22;
+}
+
+.ruleSparkle {
+  width: 14px;
+  height: 14px;
+  color: var(--butter);
+  flex-shrink: 0;
 }
 
 .footer {
   position: relative;
   z-index: 1;
-  margin-top: 40px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--charcoal);
-  opacity: 0.5;
+  margin-top: 48px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--cream);
+  opacity: 0.4;
 }
 
 @keyframes float {
@@ -119,12 +163,26 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(0.75);
+    opacity: 0.45;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mark {
+  .logo,
+  .sparkleLeft,
+  .sparkleRight {
     animation: none;
   }
 }

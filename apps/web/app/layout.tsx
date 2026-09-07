@@ -13,7 +13,8 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "The Wouff — Coming Soon",
-  description: "The Wouff is on its way. Care for your best friend, coming soon.",
+  description:
+    "Premium, boutique care for the heart of your home. The Wouff is coming soon.",
 };
 
 export default function RootLayout({
