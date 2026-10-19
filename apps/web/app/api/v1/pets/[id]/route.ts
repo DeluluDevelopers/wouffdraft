@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiHandler } from "../../../../lib/api-handler";
 import { prisma } from "../../../../lib/prisma";
-import { NotFoundError } from "../../../../lib/error-handler";
+import { BadRequestError, NotFoundError } from "../../../../lib/error-handler";
 import z from "zod";
 
 const updatePetSchema = z.object({
@@ -38,9 +38,17 @@ export const DELETE = apiHandler(async (req: NextRequest) => {
   const userId = req.headers.get("x-user-id")!;
   const id = req.nextUrl.pathname.split("/").pop()!;
 
-  const existing = await prisma.pet.findUnique({ where: { id } });
+  const existing = await prisma.pet.findUnique({
+    where: { id },
+    include: { _count: { select: { bookings: true, bookingGroups: true } } },
+  });
   if (!existing || existing.userId !== userId) {
     throw new NotFoundError("Pet not found");
+  }
+
+  // Booking history references the pet, so pets with bookings stay on file.
+  if (existing._count.bookings > 0 || existing._count.bookingGroups > 0) {
+    throw new BadRequestError("Pets with bookings can't be removed");
   }
 
   await prisma.pet.delete({ where: { id } });

@@ -3,7 +3,7 @@ import { registerSchema } from "../../../../schema/registerSchema";
 import { apiHandler } from "../../../../lib/api-handler";
 import { prisma } from "../../../../lib/prisma";
 import { BadRequestError } from "../../../../lib/error-handler";
-import { OTP_EXPIRATION_TIME } from "../../../../constant/otp";
+import { otpExpiresAt } from "../../../../constant/otp";
 import { generateOtp } from "../../../../lib/otp";
 import { sendSMS } from "../../../../lib/sms";
 
@@ -28,7 +28,7 @@ export const POST = apiHandler(async (req: NextRequest) => {
       otps: {
         create: {
           code: otpCode,
-          expiresAt: OTP_EXPIRATION_TIME,
+          expiresAt: otpExpiresAt(),
         },
       },
     },

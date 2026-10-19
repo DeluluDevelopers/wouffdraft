@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiHandler } from "../../../../lib/api-handler";
 import { prisma } from "../../../../lib/prisma";
 import { NotFoundError } from "../../../../lib/error-handler";
+import { publicWalkerSelect } from "../../../../lib/booking-include";
 
 export const GET = apiHandler(async (req: NextRequest) => {
   const userId = req.headers.get("x-user-id")!;
@@ -12,7 +13,10 @@ export const GET = apiHandler(async (req: NextRequest) => {
     include: {
       pet: true,
       location: true,
-      bookings: { orderBy: { scheduledAt: "asc" } },
+      bookings: {
+        orderBy: { scheduledAt: "asc" },
+        include: { walker: { select: publicWalkerSelect }, report: true },
+      },
     },
   });
 

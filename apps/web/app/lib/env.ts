@@ -21,6 +21,9 @@ const envSchema = z.object({
   MESSAGECENTRAL_CUSTOMER_ID: z
     .string()
     .min(1, "MESSAGECENTRAL_CUSTOMER_ID is required"),
+  // "fixed" keeps the development OTP (123456) and skips SMS; "sms" generates a
+  // random code and delivers it through MessageCentral.
+  OTP_DELIVERY: z.enum(["fixed", "sms"]).default("fixed"),
   MESSAGECENTRAL_BASE64_KEY: z
     .string()
     .min(1, "MESSAGECENTRAL_BASE64_KEY is required (base64-encoded password from MessageCentral)"),

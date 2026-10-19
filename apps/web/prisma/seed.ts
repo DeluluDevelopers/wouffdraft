@@ -1,24 +1,14 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../app/generated/prisma/client";
+import { DEFAULT_SERVICE_OPTIONS } from "../app/lib/catalog";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
 });
 const prisma = new PrismaClient({ adapter });
 
-// Mirrors today's hardcoded values in apps/app/app/(app)/home.tsx's SERVICES
-// array — seeding must replicate the status quo exactly, not invent new
-// duration tiers (those are an admin-editable follow-up).
-const SERVICE_OPTIONS = [
-  { service: "Bathing", durationMinutes: 45, label: "30-45 min", priceInRupees: 499 },
-  { service: "Cutting", durationMinutes: 60, label: "45-60 min", priceInRupees: 599 },
-  { service: "Hygiene", durationMinutes: 30, label: "20-30 min", priceInRupees: 249 },
-  { service: "BlowDry", durationMinutes: 30, label: "20-30 min", priceInRupees: 199 },
-  { service: "NailTrim", durationMinutes: 20, label: "15-20 min", priceInRupees: 149 },
-  { service: "Spa", durationMinutes: 90, label: "60-90 min", priceInRupees: 999 },
-  { service: "Cleaning", durationMinutes: 60, label: "45-60 min", priceInRupees: 599 },
-] as const;
+const SERVICE_OPTIONS = DEFAULT_SERVICE_OPTIONS;
 
 async function main() {
   for (const [index, option] of SERVICE_OPTIONS.entries()) {

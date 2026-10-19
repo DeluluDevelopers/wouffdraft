@@ -2,17 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiHandler } from "../../../../lib/api-handler";
 import { prisma } from "../../../../lib/prisma";
 import { BadRequestError, NotFoundError } from "../../../../lib/error-handler";
+import { SERVICE_VALUES, packDiscountInRupees } from "../../../../lib/catalog";
+import { customerBookingInclude as bookingInclude } from "../../../../lib/booking-include";
 import z from "zod";
-
-const SERVICE_VALUES = [
-  "Bathing",
-  "Cutting",
-  "Hygiene",
-  "BlowDry",
-  "NailTrim",
-  "Spa",
-  "Cleaning",
-] as const;
 
 const createBulkBookingSchema = z.object({
   petId: z.uuid(),
@@ -25,10 +17,10 @@ const createBulkBookingSchema = z.object({
         serviceOptionId: z.uuid(),
       }),
     )
-    .min(2, "A multi-day booking needs at least 2 days"),
+    .min(2, "A multi-day booking needs at least 2 days")
+    .max(31, "A multi-day booking can cover at most 31 days"),
+  notes: z.string().trim().max(1000).optional(),
 });
-
-const bookingInclude = { pet: true, location: true } as const;
 
 export const POST = apiHandler(async (req: NextRequest) => {
   const userId = req.headers.get("x-user-id")!;
@@ -39,9 +31,16 @@ export const POST = apiHandler(async (req: NextRequest) => {
     throw new BadRequestError("Each day in a multi-day booking must be on a different date");
   }
 
+  if (body.days.some((day) => day.scheduledAt.getTime() <= Date.now())) {
+    throw new BadRequestError("Every day in a multi-day booking must be in the future");
+  }
+
   const pet = await prisma.pet.findUnique({ where: { id: body.petId } });
   if (!pet || pet.userId !== userId) {
     throw new NotFoundError("Pet not found");
+  }
+  if (body.days.some((day) => day.service === "Walk") && pet.species !== "Dog") {
+    throw new BadRequestError("Walks are available for dogs only");
   }
 
   const location = await prisma.location.findUnique({ where: { id: body.locationId } });
@@ -67,10 +66,12 @@ export const POST = apiHandler(async (req: NextRequest) => {
     }
   }
 
-  const totalPriceInRupees = body.days.reduce(
+  const subtotal = body.days.reduce(
     (sum, day) => sum + serviceOptionById.get(day.serviceOptionId)!.priceInRupees,
     0,
   );
+  const discountInRupees = packDiscountInRupees(subtotal, body.days.length);
+  const totalPriceInRupees = subtotal - discountInRupees;
 
   const result = await prisma.$transaction(async (tx) => {
     const group = await tx.bookingGroup.create({
@@ -79,6 +80,7 @@ export const POST = apiHandler(async (req: NextRequest) => {
         petId: body.petId,
         locationId: body.locationId,
         totalPriceInRupees,
+        discountInRupees,
         dayCount: body.days.length,
       },
     });
@@ -98,6 +100,7 @@ export const POST = apiHandler(async (req: NextRequest) => {
           serviceOptionId: option.id,
           durationMinutes: option.durationMinutes,
           priceInRupees: option.priceInRupees,
+          notes: body.notes || null,
         },
         include: bookingInclude,
       });

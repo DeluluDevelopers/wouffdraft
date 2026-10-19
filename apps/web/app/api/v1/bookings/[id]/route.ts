@@ -3,9 +3,8 @@ import { apiHandler } from "../../../../lib/api-handler";
 import { prisma } from "../../../../lib/prisma";
 import { BadRequestError, NotFoundError } from "../../../../lib/error-handler";
 import { ALLOWED_TRANSITIONS, isValidTransition } from "../../../../lib/booking-status";
+import { customerBookingInclude as bookingInclude } from "../../../../lib/booking-include";
 import z from "zod";
-
-const bookingInclude = { pet: true, location: true } as const;
 
 const updateBookingSchema = z.discriminatedUnion("action", [
   z.object({

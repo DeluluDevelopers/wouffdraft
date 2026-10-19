@@ -22,6 +22,9 @@ const bookingInclude = {
   pet: true,
   location: true,
   user: { select: { id: true, name: true, phoneNumber: true, email: true } },
+  walker: true,
+  report: true,
+  review: true,
   group: {
     include: {
       bookings: {

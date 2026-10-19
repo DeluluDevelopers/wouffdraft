@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAccessToken, verifyAdminToken } from "./app/lib/jwt";
 
-const publicPrefixes = ["/api/v1/auth/", "/api/v1/address/autocomplete"];
+const publicPrefixes = ["/api/v1/auth/", "/api/v1/address/autocomplete", "/api/v1/public/"];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

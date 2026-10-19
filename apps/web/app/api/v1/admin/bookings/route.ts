@@ -1,18 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiHandler } from "../../../../lib/api-handler";
 import { prisma } from "../../../../lib/prisma";
+import { SERVICE_VALUES } from "../../../../lib/catalog";
 import type { Prisma } from "../../../../generated/prisma/client";
 
 const STATUS_VALUES = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"] as const;
-const SERVICE_VALUES = [
-  "Bathing",
-  "Cutting",
-  "Hygiene",
-  "BlowDry",
-  "NailTrim",
-  "Spa",
-  "Cleaning",
-] as const;
 const TYPE_VALUES = ["Instant", "Scheduled"] as const;
 
 export const GET = apiHandler(async (req: NextRequest) => {
@@ -32,6 +24,13 @@ export const GET = apiHandler(async (req: NextRequest) => {
   }
   if (type && TYPE_VALUES.includes(type as (typeof TYPE_VALUES)[number])) {
     where.type = type as (typeof TYPE_VALUES)[number];
+  }
+
+  const walkerId = searchParams.get("walkerId");
+  if (walkerId === "unassigned") {
+    where.walkerId = null;
+  } else if (walkerId) {
+    where.walkerId = walkerId;
   }
 
   if (search) {
@@ -54,6 +53,7 @@ export const GET = apiHandler(async (req: NextRequest) => {
         select: { id: true, name: true, phoneNumber: true, email: true },
       },
       group: { select: { id: true, dayCount: true } },
+      walker: { select: { id: true, name: true } },
     },
     orderBy: { createdAt: "desc" },
   });

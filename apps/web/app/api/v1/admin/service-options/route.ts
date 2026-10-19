@@ -1,17 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiHandler } from "../../../../lib/api-handler";
 import { prisma } from "../../../../lib/prisma";
+import { SERVICE_VALUES } from "../../../../lib/catalog";
 import z from "zod";
 
-const SERVICE_VALUES = [
-  "Bathing",
-  "Cutting",
-  "Hygiene",
-  "BlowDry",
-  "NailTrim",
-  "Spa",
-  "Cleaning",
-] as const;
 
 const createServiceOptionSchema = z.object({
   service: z.enum(SERVICE_VALUES),

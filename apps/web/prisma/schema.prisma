@@ -43,6 +43,9 @@ model User{
   pets Pet[]
   bookings Booking[]
   bookingGroups BookingGroup[]
+  reviews Review[]
+
+  createdAt DateTime @default(now())
 
   @@unique([phoneNumber])
   @@index([phoneNumber])
@@ -117,6 +120,9 @@ enum Service {
   NailTrim
   Spa
   Cleaning
+  Walk
+  HomeVisit
+  PetSitting
 }
 
 enum BookingType {
@@ -157,6 +163,14 @@ model Booking {
   durationMinutes Int?
   priceInRupees Int?
 
+  notes String?
+
+  walkerId String?
+  walker Walker? @relation(fields: [walkerId], references: [id], onDelete: SetNull)
+
+  report VisitReport?
+  review Review?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -164,6 +178,7 @@ model Booking {
   @@index([petId])
   @@index([locationId])
   @@index([groupId])
+  @@index([walkerId])
 }
 
 model ServiceOption {
@@ -198,6 +213,7 @@ model BookingGroup {
   location Location @relation(fields: [locationId], references: [id])
 
   totalPriceInRupees Int
+  discountInRupees Int @default(0)
   dayCount Int
 
   bookings Booking[]
@@ -206,4 +222,139 @@ model BookingGroup {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+// A vetted PawMile walker / carer who can be assigned to bookings.
+model Walker {
+  id String @id @default(uuid())
+
+  name String
+  phoneNumber String @unique
+  city String
+  area String?
+  bio String?
+  photoUrl String?
+  yearsExperience Int @default(0)
+  languages String[]
+  isActive Boolean @default(true)
+
+  bookings Booking[]
+  reviews Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city])
+}
+
+enum VisitMood {
+  Happy
+  Calm
+  Energetic
+  Anxious
+}
+
+// The "walk report" sent to the pet parent after a visit is completed.
+model VisitReport {
+  id String @id @default(uuid())
+
+  bookingId String @unique
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  startedAt DateTime?
+  endedAt DateTime?
+  distanceMeters Int?
+  pee Boolean @default(false)
+  poo Boolean @default(false)
+  water Boolean @default(false)
+  fed Boolean @default(false)
+  mood VisitMood @default(Happy)
+  note String
+  photoUrl String?
+  // Ordered [latitude, longitude] pairs of the walked route.
+  route Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id String @id @default(uuid())
+
+  bookingId String @unique
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  userId String
+  user User @relation(fields: [userId], references: [id])
+
+  walkerId String?
+  walker Walker? @relation(fields: [walkerId], references: [id], onDelete: SetNull)
+
+  rating Int
+  comment String?
+
+  createdAt DateTime @default(now())
+
+  @@index([walkerId])
+  @@index([userId])
+}
+
+enum ApplicationStatus {
+  NEW
+  SHORTLISTED
+  ONBOARDED
+  REJECTED
+}
+
+model WalkerApplication {
+  id String @id @default(uuid())
+
+  name String
+  phoneNumber String
+  email String?
+  city String
+  area String
+  experience String
+  availability String[]
+  hasOwnPet Boolean @default(false)
+  about String?
+
+  status ApplicationStatus @default(NEW)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+enum EnquiryTopic {
+  General
+  Booking
+  Partnership
+  Press
+  CityWaitlist
+}
+
+enum EnquiryStatus {
+  NEW
+  RESOLVED
+}
+
+model Enquiry {
+  id String @id @default(uuid())
+
+  topic EnquiryTopic @default(General)
+  name String
+  email String?
+  phoneNumber String?
+  city String?
+  message String?
+
+  status EnquiryStatus @default(NEW)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([topic])
 }
