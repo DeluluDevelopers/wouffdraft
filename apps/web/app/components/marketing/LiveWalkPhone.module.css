@@ -1,0 +1,199 @@
+.phone {
+  width: 300px;
+  max-width: 100%;
+  padding: 10px;
+  border-radius: 48px;
+  background: #1b1b1a;
+  box-shadow:
+    0 0 0 1.5px #4a4a46,
+    0 40px 80px -20px rgba(0, 0, 0, 0.55);
+}
+
+.screen {
+  position: relative;
+  border-radius: 38px;
+  overflow: hidden;
+  background: var(--biscuit);
+  color: var(--charcoal);
+  aspect-ratio: 9 / 19;
+  display: flex;
+  flex-direction: column;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 22px 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.island {
+  width: 84px;
+  height: 24px;
+  border-radius: 20px;
+  background: #1b1b1a;
+}
+
+.signal {
+  width: 22px;
+  height: 10px;
+  border-radius: 3px;
+  border: 1.5px solid var(--charcoal);
+}
+
+.appBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px 12px;
+}
+
+.appPaw {
+  color: var(--terracotta);
+}
+
+.appTitle {
+  font-stretch: 125%;
+  font-weight: 800;
+  font-size: 0.9375rem;
+  line-height: 1.2;
+}
+
+.live {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brick);
+  box-shadow: 0 0 0 0 rgba(204, 92, 75, 0.5);
+  animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+  70% {
+    box-shadow: 0 0 0 8px rgba(204, 92, 75, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(204, 92, 75, 0);
+  }
+}
+
+.map {
+  flex: 1;
+  border-radius: 0;
+  min-height: 0;
+}
+
+.sheet {
+  margin-top: -22px;
+  position: relative;
+  background: var(--paper);
+  border-radius: 24px 24px 0 0;
+  padding: 16px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 -8px 24px rgba(45, 45, 43, 0.08);
+}
+
+.walker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid var(--honey);
+}
+
+.avatar img {
+  object-fit: cover;
+}
+
+.walkerName {
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+
+.walkerMeta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.walkerMeta svg {
+  color: var(--honey);
+  fill: var(--honey);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.stats div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  background: var(--biscuit-2);
+}
+
+.stats strong {
+  font-stretch: 125%;
+  font-weight: 800;
+  font-size: 1.0625rem;
+  line-height: 1.2;
+  display: grid;
+  place-items: center;
+  min-height: 1.3em;
+}
+
+.stats span {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--charcoal);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.actionDark {
+  background: var(--charcoal);
+  color: var(--biscuit);
+}

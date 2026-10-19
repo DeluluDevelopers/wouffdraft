@@ -1,0 +1,14 @@
+# Keep local secrets and large source files out of CLI deployments.
+.env
+.env.*
+**/.env
+**/.env.*
+**/node_modules
+**/.next
+**/.expo
+**/.turbo
+*.zip
+*.pdf
+*.png
+!apps/web/public/**/*.png
+!apps/app/assets/**/*.png

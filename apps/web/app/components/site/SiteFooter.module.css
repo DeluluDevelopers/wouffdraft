@@ -1,0 +1,118 @@
+.footer {
+  background: var(--charcoal);
+  color: var(--biscuit);
+  padding-top: clamp(64px, 8vw, 104px);
+  overflow: hidden;
+}
+
+.top {
+  display: grid;
+  gap: 40px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.brandCol {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 380px;
+}
+
+.blurb {
+  color: rgba(253, 246, 234, 0.78);
+  font-size: 0.9375rem;
+}
+
+.contact {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contactLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9375rem;
+  color: rgba(253, 246, 234, 0.88);
+}
+
+a.contactLink:hover {
+  color: var(--honey);
+}
+
+.colTitle {
+  color: var(--honey);
+  margin-bottom: 18px;
+}
+
+.col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.link {
+  font-size: 0.9375rem;
+  color: rgba(253, 246, 234, 0.82);
+  transition: color 0.15s ease;
+}
+
+.link:hover {
+  color: var(--biscuit);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.sign {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-top: clamp(56px, 8vw, 96px);
+  color: var(--terracotta);
+}
+
+.signText {
+  font-size: clamp(2.5rem, 7.2vw, 7rem);
+  line-height: 0.9;
+  white-space: nowrap;
+}
+
+.signPaw {
+  width: clamp(40px, 6vw, 88px);
+  height: auto;
+  margin-bottom: 0.4em;
+  flex-shrink: 0;
+}
+
+.bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 28px;
+  padding-bottom: 32px;
+  margin-top: 28px;
+  border-top: 1px solid rgba(253, 246, 234, 0.14);
+  font-size: 0.8125rem;
+  color: rgba(253, 246, 234, 0.7);
+}
+
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.legal a:hover {
+  color: var(--biscuit);
+}
+
+@media (min-width: 900px) {
+  .bottom {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
