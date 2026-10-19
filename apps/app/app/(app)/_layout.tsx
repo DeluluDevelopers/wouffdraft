@@ -1,57 +1,22 @@
-import { Redirect, Tabs } from "expo-router";
-import { StatusBar } from "react-native";
+import { Redirect, Stack } from "expo-router";
 import { useAuth } from "@/auth/useAuth";
-import { LoadingScreen } from "@/ui/LoadingScreen";
-import { HomeIcon, CalendarIcon, ProfileTabIcon } from "@/components/icons/NavIcons";
-import Colors from "@/constants/Colors";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { colors } from "@/theme";
 
-export default function AppLayout() {
+// Signed-in area. The tab bar is the base screen; every detail screen is
+// pushed on top of it, so "back" always returns to where you came from.
+export default function SignedInLayout() {
   const { isHydrating, isAuthenticated, profileCompleted } = useAuth();
 
   if (isHydrating) return <LoadingScreen />;
-
   if (!isAuthenticated) return <Redirect href="/(auth)/login" />;
-  if (!profileCompleted)
-    return <Redirect href="/(onboarding)/completeProfile/address" />;
+  if (!profileCompleted) return <Redirect href="/(onboarding)/completeProfile/address" />;
 
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarStyle: {
-            backgroundColor: Colors.light.surfaceContainerLowest,
-            borderTopColor: Colors.light.outlineVariant,
-            borderTopWidth: 1.5,
-            height: 70,
-            paddingBottom: 12,
-            paddingTop: 10,
-          },
-          tabBarActiveTintColor: Colors.light.primary,
-          tabBarInactiveTintColor: Colors.light.outline,
-          tabBarShowLabel: false,
-        }}
-      >
-        <Tabs.Screen
-          name="home"
-          options={{
-            tabBarIcon: ({ color, size }) => <HomeIcon size={size} color={color as string} />,
-          }}
-        />
-        <Tabs.Screen
-          name="bookings"
-          options={{
-            tabBarIcon: ({ color, size }) => <CalendarIcon size={size} color={color as string} />,
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            tabBarIcon: ({ color, size }) => <ProfileTabIcon size={size} color={color as string} />,
-          }}
-        />
-      </Tabs>
-    </>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="book/index" options={{ animation: "slide_from_bottom" }} />
+      <Stack.Screen name="book/success" options={{ animation: "fade", gestureEnabled: false }} />
+    </Stack>
   );
 }

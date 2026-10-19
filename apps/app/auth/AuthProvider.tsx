@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   completeProfile,
@@ -72,14 +66,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profileCompleted: profile.profileStatus === "PROFILE_COMPLETED",
       isAuthenticated: true,
     }));
-    console.log(profile);
     return profile;
   };
 
   const refreshSession = async () => {
     try {
-      const currentRefreshToken =
-        state.refreshToken || (await getTokens()).refreshToken;
+      const currentRefreshToken = state.refreshToken || (await getTokens()).refreshToken;
       if (!currentRefreshToken) return false;
 
       const tokens = await refreshTokens(currentRefreshToken);
@@ -137,8 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const requestOtp = async (phone: string) => {
-    const response = await sendOtp({ phoneNumber: phone });
-    console.log(response);
+    await sendOtp({ phoneNumber: phone });
     setState((prev) => ({ ...prev, phone }));
   };
 

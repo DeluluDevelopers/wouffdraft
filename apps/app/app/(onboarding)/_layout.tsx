@@ -1,6 +1,6 @@
 import { Redirect, Stack } from "expo-router";
 import { useAuth } from "@/auth/useAuth";
-import { LoadingScreen } from "@/ui/LoadingScreen";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 export default function OnboardingLayout() {
   const { isHydrating, isAuthenticated, profileCompleted } = useAuth();
@@ -8,7 +8,7 @@ export default function OnboardingLayout() {
   if (isHydrating) return <LoadingScreen />;
 
   if (!isAuthenticated) return <Redirect href="/(auth)/login" />;
-  if (profileCompleted) return <Redirect href="/(app)/home" />;
+  if (profileCompleted) return <Redirect href="/home" />;
 
   return <Stack screenOptions={{ headerShown: false }} />;
 }

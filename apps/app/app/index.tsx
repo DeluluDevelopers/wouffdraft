@@ -1,6 +1,6 @@
 import { Redirect } from "expo-router";
 import { useAuth } from "@/auth/useAuth";
-import { LoadingScreen } from "@/ui/LoadingScreen";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 export default function Index() {
   const { isHydrating, isAuthenticated, profileCompleted } = useAuth();
@@ -8,8 +8,7 @@ export default function Index() {
   if (isHydrating) return <LoadingScreen />;
 
   if (!isAuthenticated) return <Redirect href="/(auth)/login" />;
-  if (!profileCompleted)
-    return <Redirect href="/(onboarding)/completeProfile/address" />;
+  if (!profileCompleted) return <Redirect href="/(onboarding)/completeProfile/address" />;
 
-  return <Redirect href="/(app)/home" />;
+  return <Redirect href="/home" />;
 }

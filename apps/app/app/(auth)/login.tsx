@@ -1,167 +1,148 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { Image, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Alert, Image, Text, View, StyleSheet, TextInput } from "react-native";
 import { useMutation } from "@tanstack/react-query";
+import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/auth/useAuth";
-import { sendOtp } from "@/lib/api";
-import { Screen } from "@/ui/Screen";
-import { PrimaryButton } from "@/ui/PrimaryButton";
-import Colors from "@/constants/Colors";
-import Typography from "@/constants/Typography";
-import { Radius, Spacing } from "@/constants/Spacing";
+import { apiErrorMessage, sendOtp } from "@/lib/api";
+import { openLegal } from "@/lib/links";
+import { Logo } from "@/components/brand/Logo";
+import { Button } from "@/components/ui/Button";
+import { Screen } from "@/components/ui/Screen";
+import { Text } from "@/components/ui/Text";
+import { TextField } from "@/components/ui/TextField";
+import { colors, radius } from "@/theme";
+
+const COUNTRY_CODE = "91";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { setPhone } = useAuth();
   const [phone, setPhoneLocal] = useState("");
-  const [countryCode, setCountryCode] = useState("91");
+  const [error, setError] = useState("");
 
   const mutation = useMutation({
     mutationFn: sendOtp,
-    onSuccess: async () => {
-      setPhone(phone);
-      router.push({
-        pathname: "/(auth)/verifyOtp",
-        params: { phone: countryCode + phone },
-      });
+    onSuccess: () => {
+      setPhone(COUNTRY_CODE + phone);
+      router.push({ pathname: "/(auth)/verifyOtp", params: { phone: COUNTRY_CODE + phone } });
     },
-    onError: (err) => {
-      console.error("sendOtp failed:", err);
-      const data = (err as any)?.response?.data;
-      const message =
-        data?.message ||
-        (err instanceof Error ? err.message : "Could not send OTP.");
-      Alert.alert("Error", message);
-    },
+    onError: (err) => setError(apiErrorMessage(err, "We couldn't send the code. Please try again.")),
   });
 
+  const valid = /^[6-9]\d{9}$/.test(phone);
+
   const onContinue = () => {
-    const trimmed = phone.trim();
-    if (!trimmed) {
-      Alert.alert("Phone required", "Enter your phone number.");
+    setError("");
+    if (!valid) {
+      setError("Enter a valid 10-digit mobile number.");
       return;
     }
-    if (trimmed.length !== 10) {
-      Alert.alert(
-        "Invalid phone number",
-        "Enter a valid 10-digit phone number.",
-      );
-      return;
-    }
-    mutation.mutate({ phoneNumber: countryCode + trimmed });
+    mutation.mutate({ phoneNumber: COUNTRY_CODE + phone });
   };
 
   return (
-    <Screen scroll>
-      <View style={styles.container}>
-        <View style={styles.brandRow}>
-          <Image
-            source={require("@/assets/images/brand/wouff-mark.png")}
-            style={styles.mark}
-            resizeMode="contain"
-          />
+    <Screen padded={false} edges={["left", "right", "bottom"]}>
+      <View style={styles.hero}>
+        <Image
+          source={require("@/assets/images/photos/puppy-run.jpg")}
+          style={StyleSheet.absoluteFill}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          colors={["rgba(45,45,43,0.55)", "rgba(45,45,43,0)", "rgba(45,45,43,0.2)"]}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={[styles.heroContent, { paddingTop: insets.top + 24 }]}>
+          <Logo variant="primary" colour="biscuit" width={150} />
         </View>
+      </View>
 
-        <Text style={styles.title}>WELCOME</Text>
-        <Text style={styles.subtitle}>
-          Enter your phone number and we'll send you a one-time code to sign
-          in.
+      <View style={styles.sheet}>
+        <Text variant="headline" color={colors.terracotta}>
+          every walk counts
+        </Text>
+        <Text variant="titleLg" style={styles.title} accessibilityRole="header">
+          Log in or sign up
+        </Text>
+        <Text variant="body" color={colors.textMuted} style={styles.subtitle}>
+          We&apos;ll send a 6-digit code to your mobile number.
         </Text>
 
-        <View style={styles.fieldWrap}>
-          <Text style={styles.label}>Phone number</Text>
-          <View style={styles.phoneInputWrap}>
-            <TextInput
-              style={styles.countryCodeInput}
-              value={`+${countryCode}`}
-              editable={false}
-              keyboardType="phone-pad"
-            />
-            <TextInput
-              style={styles.phoneInput}
-              placeholder="XXXXXXXXXX"
-              placeholderTextColor={Colors.light.outline}
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={(text) => setPhoneLocal(text.replace(/[^0-9]/g, ""))}
-              maxLength={10}
-            />
-          </View>
-        </View>
+        <TextField
+          label="Mobile number"
+          prefix={COUNTRY_CODE}
+          placeholder="98765 43210"
+          keyboardType="phone-pad"
+          textContentType="telephoneNumber"
+          autoComplete="tel"
+          maxLength={10}
+          value={phone}
+          onChangeText={(text) => {
+            setPhoneLocal(text.replace(/\D/g, ""));
+            setError("");
+          }}
+          onSubmitEditing={onContinue}
+          error={error}
+          returnKeyType="next"
+        />
 
-        <PrimaryButton
-          title="Send OTP"
+        <Button
+          title="Get OTP"
+          iconRight="arrow-right"
           onPress={onContinue}
           loading={mutation.isPending}
+          disabled={!valid}
+          block
+          size="lg"
         />
+
+        <Text variant="caption" color={colors.textSubtle} align="center" style={styles.legal}>
+          By continuing you agree to our{" "}
+          <Text variant="caption" color={colors.text} style={styles.link} onPress={() => openLegal("terms")}>
+            Terms
+          </Text>{" "}
+          and{" "}
+          <Text variant="caption" color={colors.text} style={styles.link} onPress={() => openLegal("privacy")}>
+            Privacy Policy
+          </Text>
+          .
+        </Text>
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
+  hero: {
+    height: 300,
+    backgroundColor: colors.terracotta,
   },
-  brandRow: {
+  heroContent: {
     alignItems: "center",
-    marginBottom: Spacing.xl,
   },
-  mark: {
-    width: 88,
-    height: 88,
+  sheet: {
+    flex: 1,
+    marginTop: -32,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    backgroundColor: colors.background,
   },
   title: {
-    ...Typography.displayLg,
-    color: Colors.light.ink,
-    textAlign: "center",
-    marginBottom: 12,
+    marginTop: 2,
   },
   subtitle: {
-    ...Typography.bodyMd,
-    color: Colors.light.onSurfaceVariant,
-    textAlign: "center",
-    marginBottom: Spacing.xl,
-    paddingHorizontal: Spacing.sm,
+    marginTop: 8,
+    marginBottom: 24,
   },
-  fieldWrap: {
-    marginBottom: 4,
+  legal: {
+    marginTop: 16,
   },
-  label: {
-    color: Colors.light.onSurfaceVariant,
-    fontSize: 12,
-    fontFamily: Typography.labelCaps.fontFamily,
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    marginBottom: 8,
-  },
-  phoneInputWrap: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  countryCodeInput: {
-    width: 72,
-    height: 56,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.light.outlineVariant,
-    backgroundColor: Colors.light.surfaceContainerLow,
-    color: Colors.light.ink,
-    fontSize: 16,
-    textAlign: "center",
-    fontFamily: Typography.bodyMd.fontFamily,
-  },
-  phoneInput: {
-    flex: 1,
-    height: 56,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.light.outlineVariant,
-    backgroundColor: Colors.light.surfaceContainerLowest,
-    color: Colors.light.ink,
-    fontSize: 16,
-    paddingHorizontal: 16,
-    fontFamily: Typography.bodyMd.fontFamily,
+  link: {
+    textDecorationLine: "underline",
   },
 });

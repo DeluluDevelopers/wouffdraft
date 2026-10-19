@@ -1,146 +1,156 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import {
-  Alert,
-  Text,
-  View,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-} from "react-native";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/auth/useAuth";
-import { Screen } from "@/ui/Screen";
-import { PrimaryButton } from "@/ui/PrimaryButton";
-import Colors from "@/constants/Colors";
-import Typography from "@/constants/Typography";
-import { Radius, Spacing } from "@/constants/Spacing";
+import { apiErrorMessage, sendOtp } from "@/lib/api";
+import { phone as formatPhone } from "@/lib/format";
+import { Button } from "@/components/ui/Button";
+import { Header } from "@/components/ui/Header";
+import { OtpInput } from "@/components/ui/OtpInput";
+import { Screen } from "@/components/ui/Screen";
+import { Text } from "@/components/ui/Text";
+import { colors, radius } from "@/theme";
+
+const RESEND_SECONDS = 30;
 
 export default function VerifyOtpScreen() {
   const router = useRouter();
-  const { phone: routePhone } = useLocalSearchParams<{ phone: string }>();
+  const { phone = "" } = useLocalSearchParams<{ phone: string }>();
   const { loginWithOtp } = useAuth();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [seconds, setSeconds] = useState(RESEND_SECONDS);
 
-  const mutation = useMutation({
-    mutationFn: async () => {
-      const phone = routePhone || "";
-      return loginWithOtp(phone, otp.trim());
-    },
+  useEffect(() => {
+    if (seconds <= 0) return;
+    const timer = setTimeout(() => setSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [seconds]);
+
+  const verify = useMutation({
+    mutationFn: (code: string) => loginWithOtp(phone, code),
     onSuccess: (profile) => {
-      if (profile?.profileStatus === "PROFILE_COMPLETED") {
-        router.replace("/(app)/home");
-      } else {
-        router.replace("/(onboarding)/completeProfile/address");
-      }
+      router.replace(
+        profile?.profileStatus === "PROFILE_COMPLETED" ? "/home" : "/(onboarding)/completeProfile/address",
+      );
     },
-    onError: (err: any) => {
-      const message =
-        err?.response?.data?.message ||
-        "Invalid OTP. Please check the code and try again.";
-      setError(message);
+    onError: (err) => {
+      setError(apiErrorMessage(err, "That code is wrong or has expired."));
+      setOtp("");
     },
   });
 
-  const onVerify = () => {
+  const resend = useMutation({
+    mutationFn: () => sendOtp({ phoneNumber: phone }),
+    onSuccess: () => {
+      setSeconds(RESEND_SECONDS);
+      setNotice("Code sent.");
+      setError("");
+    },
+    onError: (err) => setError(apiErrorMessage(err)),
+  });
+
+  const onChange = (value: string) => {
+    setOtp(value);
     setError("");
-    if (!otp.trim()) {
-      Alert.alert("OTP required", "Enter the OTP sent to your phone.");
-      return;
-    }
-    mutation.mutate();
+    setNotice("");
+    if (value.length === 6 && !verify.isPending) verify.mutate(value);
   };
 
   return (
-    <Screen scroll>
-      <View style={styles.container}>
-        <Text style={styles.title}>VERIFY</Text>
-        <Text style={styles.subtitle}>
-          We sent a code to {routePhone || "your phone number"}.
+    <Screen header={<Header />}>
+      <Text variant="titleLg" style={{ marginTop: 8 }} accessibilityRole="header">
+        Enter the code
+      </Text>
+      <View style={styles.sentRow}>
+        <Text variant="body" color={colors.textMuted}>
+          Sent to {formatPhone(phone)}
         </Text>
+        <Pressable onPress={() => router.back()} hitSlop={8} accessibilityRole="button">
+          <Text variant="bodyStrong" color={colors.terracottaInk}>
+            Edit
+          </Text>
+        </Pressable>
+      </View>
 
-        {error ? (
-          <View style={styles.errorWrap}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : null}
+      <OtpInput value={otp} onChange={onChange} error={!!error} autoFocus />
 
-        <TextInput
-          style={styles.otpInput}
-          placeholder="• • • • • •"
-          placeholderTextColor={Colors.light.outline}
-          keyboardType="number-pad"
-          value={otp}
-          onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
-          maxLength={6}
-          autoFocus
-        />
+      {error ? (
+        <View style={[styles.banner, styles.bannerError]}>
+          <Text variant="bodySm" color="#7E2D22">
+            {error}
+          </Text>
+        </View>
+      ) : notice ? (
+        <View style={[styles.banner, styles.bannerInfo]}>
+          <Text variant="bodySm" color="#2D4A40">
+            {notice}
+          </Text>
+        </View>
+      ) : null}
 
-        <PrimaryButton
-          title="Verify"
-          onPress={onVerify}
-          loading={mutation.isPending}
-        />
+      {__DEV__ ? (
+        <Text variant="caption" color={colors.textSubtle} style={styles.devHint}>
+          Test code: 123456
+        </Text>
+      ) : null}
 
-        <TouchableOpacity onPress={() => router.back()} style={styles.backWrap}>
-          <Text style={styles.backText}>Change phone number</Text>
-        </TouchableOpacity>
+      <Button
+        title="Verify"
+        onPress={() => verify.mutate(otp)}
+        loading={verify.isPending}
+        disabled={otp.length !== 6}
+        block
+        size="lg"
+        style={styles.verify}
+      />
+
+      <View style={styles.resendRow}>
+        {seconds > 0 ? (
+          <Text variant="bodySm" color={colors.textMuted}>
+            Resend code in 0:{String(seconds).padStart(2, "0")}
+          </Text>
+        ) : (
+          <Pressable onPress={() => resend.mutate()} disabled={resend.isPending} hitSlop={8} accessibilityRole="button">
+            <Text variant="bodyStrong" color={colors.terracottaInk}>
+              {resend.isPending ? "Sending…" : "Resend code"}
+            </Text>
+          </Pressable>
+        )}
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  title: {
-    ...Typography.displayLg,
-    color: Colors.light.ink,
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  subtitle: {
-    ...Typography.bodyMd,
-    color: Colors.light.onSurfaceVariant,
-    textAlign: "center",
-    marginBottom: Spacing.lg,
-  },
-  errorWrap: {
-    backgroundColor: Colors.light.errorContainer,
-    padding: 14,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.light.error,
-    marginBottom: Spacing.md,
-  },
-  errorText: {
-    color: Colors.light.onErrorContainer,
-    fontSize: 14,
-    fontFamily: Typography.bodyMd.fontFamily,
-  },
-  otpInput: {
-    height: 60,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.light.outlineVariant,
-    backgroundColor: Colors.light.surfaceContainerLowest,
-    color: Colors.light.ink,
-    fontSize: 22,
-    paddingHorizontal: 16,
-    textAlign: "center",
-    letterSpacing: 8,
-    fontFamily: Typography.headlineMd.fontFamily,
-  },
-  backWrap: {
-    marginTop: 20,
+  sentRow: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: 10,
+    marginTop: 8,
+    marginBottom: 28,
   },
-  backText: {
-    color: Colors.light.primary,
-    fontSize: 14,
-    fontFamily: Typography.bodyMd.fontFamily,
+  banner: {
+    marginTop: 16,
+    padding: 14,
+    borderRadius: radius.sm,
+  },
+  bannerError: {
+    backgroundColor: colors.brickSoft,
+  },
+  bannerInfo: {
+    backgroundColor: colors.sageSoft,
+  },
+  devHint: {
+    marginTop: 14,
+  },
+  verify: {
+    marginTop: 28,
+  },
+  resendRow: {
+    alignItems: "center",
+    marginTop: 20,
   },
 });

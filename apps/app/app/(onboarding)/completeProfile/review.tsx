@@ -1,166 +1,141 @@
-import React from "react";
+import { useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Alert, Text, View, StyleSheet, Pressable } from "react-native";
 import { useMutation } from "@tanstack/react-query";
-import { Screen } from "@/ui/Screen";
-import { PrimaryButton } from "@/ui/PrimaryButton";
-import { Card } from "@/ui/Card";
-import { WizardStepHeader } from "@/ui/WizardStepHeader";
 import { useAuth } from "@/auth/useAuth";
+import { draftToPayload } from "@/components/pets/PetForm";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Header } from "@/components/ui/Header";
+import { Icon } from "@/components/ui/Icon";
+import { PetAvatar } from "@/components/ui/PetAvatar";
+import { Screen } from "@/components/ui/Screen";
+import { StepHeader } from "@/components/ui/StepHeader";
+import { Text } from "@/components/ui/Text";
+import { apiErrorMessage } from "@/lib/api";
+import { petAge } from "@/lib/format";
+import { colors, radius } from "@/theme";
 import { useProfileWizard } from "@/wizard/ProfileWizard";
-import Colors from "@/constants/Colors";
-import Typography from "@/constants/Typography";
 
-export default function ReviewScreen() {
+export default function ReviewStepScreen() {
   const router = useRouter();
   const { data, reset } = useProfileWizard();
   const { finishProfile } = useAuth();
+  const [error, setError] = useState("");
 
   const mutation = useMutation({
-    mutationFn: async () => {
-      const payload = {
+    mutationFn: () =>
+      finishProfile({
         name: data.name.trim(),
-        label: data.label,
-        placeId: data.placeId,
-        pets: data.pets.map((p) => ({
-          name: p.name.trim(),
-          species: p.species,
-          breed: p.breed.trim() || undefined,
-          ageMonths: parseInt(p.ageMonths, 10),
-          gender: p.gender,
-          vaccinationStatus: p.vaccinationStatus,
-          medicalConditions: p.medicalConditions,
-          medicalHistory: p.medicalHistory.trim() || undefined,
-        })),
-      };
-      await finishProfile(payload);
-    },
+        label: data.address!.label,
+        placeId: data.address!.placeId,
+        pets: data.pets.map(draftToPayload),
+      }),
     onSuccess: () => {
       reset();
-      router.replace("/(app)/home");
+      router.replace("/home");
     },
-    onError: (err: any) => {
-      const message =
-        err?.response?.data?.message || "Could not complete profile.";
-      Alert.alert("Error", message);
-    },
+    onError: (err) => setError(apiErrorMessage(err, "We couldn't save your profile. Please try again.")),
   });
 
-  const onSubmit = () => mutation.mutate();
+  if (!data.address || data.pets.length === 0) {
+    return (
+      <Screen header={<Header />}>
+        <Text variant="body">Your name, address or pet details are missing.</Text>
+        <Button
+          title="Go back to step 1"
+          onPress={() => router.replace("/(onboarding)/completeProfile/address")}
+          style={{ marginTop: 16 }}
+        />
+      </Screen>
+    );
+  }
 
   return (
-    <Screen scroll>
-      <WizardStepHeader
-        step={3}
-        total={3}
-        title="Review"
-        subtitle="Check everything looks right before saving."
-      />
+    <Screen
+      header={<Header />}
+      footer={
+        <Button
+          title="Save and continue"
+          onPress={() => mutation.mutate()}
+          loading={mutation.isPending}
+          block
+          size="lg"
+        />
+      }
+    >
+      <StepHeader step={3} total={3} title="Check your details" />
 
-      <Section title="Personal info">
-        <Row label="Name" value={data.name} />
-      </Section>
-
-      <Section title="Address">
-        <Row label="Label" value={data.label} />
-      </Section>
-
-      <Section title={`Pets (${data.pets.length})`}>
-        {data.pets.map((pet, i) => (
-          <Card key={i} style={styles.petSummary}>
-            <Text style={styles.petName}>{pet.name || `Pet ${i + 1}`}</Text>
-            <Text style={styles.petDetail}>
-              {pet.species} &middot; {pet.gender} &middot;{" "}
-              {pet.ageMonths || "?"} months
+      <Card style={styles.block}>
+        <Text variant="label" color={colors.textMuted}>
+          You
+        </Text>
+        <Text variant="title" style={{ marginTop: 6 }}>
+          {data.name}
+        </Text>
+        <View style={styles.addressRow}>
+          <Icon name="map-pin" size={18} color={colors.terracottaInk} />
+          <View style={{ flex: 1 }}>
+            <Text variant="bodyStrong">{data.address.label}</Text>
+            <Text variant="bodySm" color={colors.textMuted}>
+              {data.address.description}
             </Text>
-            <Text style={styles.petDetail}>
-              Vaccination: {pet.vaccinationStatus}
-              {pet.medicalConditions ? " · Has medical conditions" : ""}
+          </View>
+        </View>
+      </Card>
+
+      <Text variant="label" color={colors.textMuted} style={styles.sectionLabel}>
+        Pets ({data.pets.length})
+      </Text>
+      {data.pets.map((pet, index) => (
+        <Card key={index} style={styles.petCard}>
+          <PetAvatar name={pet.name} species={pet.species} size={46} />
+          <View style={{ flex: 1 }}>
+            <Text variant="titleSm">{pet.name}</Text>
+            <Text variant="bodySm" color={colors.textMuted}>
+              {[pet.breed || pet.species, petAge(pet.ageYears * 12 + pet.ageMonths), pet.gender].join(" · ")}
             </Text>
-          </Card>
-        ))}
-      </Section>
+          </View>
+        </Card>
+      ))}
 
-      <PrimaryButton
-        title="Save profile"
-        onPress={onSubmit}
-        loading={mutation.isPending}
-      />
-
-      <Pressable onPress={() => router.back()} style={styles.backWrap}>
-        <Text style={styles.backText}>Back</Text>
-      </Pressable>
+      {error ? (
+        <View style={styles.error}>
+          <Text variant="bodySm" color="#7E2D22">
+            {error}
+          </Text>
+        </View>
+      ) : null}
     </Screen>
   );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {children}
-    </View>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  section: {
-    marginBottom: 20,
+  block: {
+    gap: 2,
   },
-  sectionTitle: {
-    ...Typography.labelCaps,
-    color: Colors.light.primary,
+  addressRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+  },
+  sectionLabel: {
+    marginTop: 24,
     marginBottom: 10,
   },
-  row: {
+  petCard: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.light.outlineVariant,
-  },
-  rowLabel: {
-    ...Typography.bodyMd,
-    color: Colors.light.onSurfaceVariant,
-  },
-  rowValue: {
-    ...Typography.bodyMd,
-    fontFamily: Typography.headlineMd.fontFamily,
-    color: Colors.light.ink,
-  },
-  petSummary: {
-    marginBottom: 8,
-  },
-  petName: {
-    ...Typography.headlineMd,
-    color: Colors.light.ink,
-    marginBottom: 4,
-  },
-  petDetail: {
-    ...Typography.bodySm,
-    color: Colors.light.onSurfaceVariant,
-  },
-  backWrap: {
-    marginTop: 18,
     alignItems: "center",
+    gap: 12,
+    marginBottom: 10,
   },
-  backText: {
-    ...Typography.bodyMd,
-    color: Colors.light.onSurfaceVariant,
+  error: {
+    marginTop: 12,
+    padding: 14,
+    borderRadius: radius.sm,
+    backgroundColor: colors.brickSoft,
   },
 });

@@ -1,94 +1,42 @@
 import React, { createContext, useContext, useState } from "react";
-
-export type PetForm = {
-  name: string;
-  species: "Dog" | "Cat";
-  breed: string;
-  ageMonths: string;
-  gender: "Male" | "Female";
-  vaccinationStatus: "UpToDate" | "Partial" | "None";
-  medicalConditions: boolean;
-  medicalHistory: string;
-};
+import type { AddressChoice } from "@/components/address/AddressSearch";
+import type { PetDraft } from "@/components/pets/PetForm";
 
 export type WizardData = {
   name: string;
-  label: string;
-  placeId: string;
-  pets: PetForm[];
+  address: AddressChoice | null;
+  pets: PetDraft[];
 };
 
 const defaultData: WizardData = {
   name: "",
-  label: "",
-  placeId: "",
+  address: null,
   pets: [],
 };
 
 type WizardContextType = {
   data: WizardData;
   setName: (name: string) => void;
-  setAddress: (label: string, placeId: string) => void;
-  addPet: () => void;
-  updatePet: (index: number, pet: PetForm) => void;
-  removePet: (index: number) => void;
+  setAddress: (address: AddressChoice | null) => void;
+  setPets: (pets: PetDraft[]) => void;
   reset: () => void;
 };
 
 const WizardContext = createContext<WizardContextType | null>(null);
 
-export function ProfileWizardProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// Onboarding collects everything first and submits it in one API call.
+export function ProfileWizardProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<WizardData>(defaultData);
 
-  const setName = (name: string) => setData((prev) => ({ ...prev, name }));
+  const value: WizardContextType = {
+    data,
+    setName: (name) => setData((prev) => ({ ...prev, name })),
+    setAddress: (address) => setData((prev) => ({ ...prev, address })),
+    setPets: (pets) => setData((prev) => ({ ...prev, pets })),
+    reset: () => setData(defaultData),
+  };
 
-  const setAddress = (label: string, placeId: string) =>
-    setData((prev) => ({ ...prev, label, placeId }));
-
-  const addPet = () =>
-    setData((prev) => ({
-      ...prev,
-      pets: [
-        ...prev.pets,
-        {
-          name: "",
-          species: "Dog" as const,
-          breed: "",
-          ageMonths: "",
-          gender: "Male" as const,
-          vaccinationStatus: "UpToDate" as const,
-          medicalConditions: false,
-          medicalHistory: "",
-        },
-      ],
-    }));
-
-  const updatePet = (index: number, pet: PetForm) =>
-    setData((prev) => {
-      const pets = [...prev.pets];
-      pets[index] = pet;
-      return { ...prev, pets };
-    });
-
-  const removePet = (index: number) =>
-    setData((prev) => ({
-      ...prev,
-      pets: prev.pets.filter((_, i) => i !== index),
-    }));
-
-  const reset = () => setData(defaultData);
-
-  return (
-    <WizardContext.Provider
-      value={{ data, setName, setAddress, addPet, updatePet, removePet, reset }}
-    >
-      {children}
-    </WizardContext.Provider>
-  );
+  return <WizardContext.Provider value={value}>{children}</WizardContext.Provider>;
 }
 
 export function useProfileWizard() {
